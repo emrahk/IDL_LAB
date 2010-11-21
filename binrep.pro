@@ -1,4 +1,5 @@
 pro binrep,num,ind,n_el
+; This program is used in for reading the binary file of MPA3 system. It is used to find the starting bit.
 order=indgen(16)
 bit=bytarr(16)
 n=long(2)^order
