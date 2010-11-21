@@ -1,7 +1,7 @@
 function pickread, data_dir=data_dir
 
 ;This program is the simplest wrapper to query a MPA .lst file, read and give the event list as output.
-; It only returns the cleaned up structure
+
 
 
 IF NOT keyword_set(data_dir) THEN data_dir='C:\Documents and Settings\ekalemci\Desktop\'
