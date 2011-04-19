@@ -59,13 +59,13 @@ IF show eq 1 THEN BEGIN  ;to show fit
     ENDIF ELSE BEGIN
       z=(xcor-par1p(1))/par1p(2)
     oplot,x_fit,par1p(0)*exp(-z^2/2.),color=150,thick=2. 
-    oplot,x_fit,par1p(3)+par(4)*xcor
+    oplot,x_fit,par1p(3)+par1p(4)*xcor
     par=par1p
     ENDELSE
 
 
   ;oplot,x_fit,par1p(3)+par1p(4)*xcor
-    ;print,par1p
+  ;  print,par1p
 
     str1 = 'Centroid = ' + STRTRIM(par(1)+x1,1)       ;YK: added str1, str2, changed xyouts
     str2 = 'FWHM = ' + STRTRIM(abs(par(2))*2.35,1)
