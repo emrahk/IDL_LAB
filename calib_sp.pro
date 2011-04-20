@@ -1,4 +1,5 @@
-pro calib_sp, inspe, outpar, pens=pens, inspe2=insp2, binsize=binsize,npol=npol
+pro calib_sp, inspe, outpar, pens=pens, inspe2=insp2, binsize=binsize,npol=npol, $
+xr1=xr1, xr2=xr2
 
 ; This program takes a one or two spectra as an input array and
 ; produce an output for calibration in the form of [a,b] energy=a+b*channel
@@ -15,7 +16,7 @@ pro calib_sp, inspe, outpar, pens=pens, inspe2=insp2, binsize=binsize,npol=npol
 ;inspe2: if there are two spectra for two different peaks, inspe2 is the second spectra
 ;binsize: bin parameter to aid fitting. if one spectrum a float, if two spectra fltarr[2]
 ;npol: polynomial degree in fitting. 
-
+;xr1,2 : input xranges for plotting
 
 IF NOT keyword_set(pens) THEN pens=[122.1, 136.5]
 IF NOT keyword_set(insp2) THEN inp2=0 ELSE inp2=1
@@ -26,33 +27,42 @@ IF NOT keyword_set(binsize) then binsize=[1,1]
 ;IF one dimensional, duplicate to mimic two source to have a parallel
 ;program
 
+x_range=fltarr(2,2)
 IF inp2 THEN BEGIN
   asize=[n_elements(inspe),n_elements(insp2)] 
   szs=(asize[0] > asize[1])
   spe=lonarr(2,szs)
   spe(0,0:asize[0]-1L)=inspe
   spe(1,0:asize[1]-1L)=insp2
+  IF keyword_set(xr1) THEN x_range[0,*]=xr1 ELSE x_range[0,*]=[1e1, asize[0]]
+  IF keyword_set(xr2) THEN x_range[1,*]=xr2 ELSE x_range[1,*]=[1e1, asize[1]]
   ENDIF ELSE BEGIN
      spe=lonarr(2,n_elements(inspe))
      spe[0,*]=inspe
      spe[1,*]=inspe
      asize=[n_elements(inspe),n_elements(inspe)] 
      IF n_elements(binsize) eq 1 then binsize=[binsize,binsize]
+     IF keyword_set(xr1) THEN BEGIN
+        x_range[0,*]=xr1
+        x_range[1,*]=xr1
+      ENDIF ELSE x_range[0,*]=[1e1, asize[0]]
+
   ENDELSE
 
 peakch=fltarr(2)
 
 !p.multi=0
+
+
 FOR j=0,1 DO BEGIN
 
-  x_range = [1e1, asize[j]] ;just provide an initial guess
   y_range = [1, MAX(spe[j,1:*])*1.2] ;start from 1 for logarithmic scale
   r1 = !x.crange ; initial range is the plot window
   cond1='No'
 
   WHILE cond1 EQ 'No' DO BEGIN
 
-  PLOT, spe[j,*], xrange = x_range, yrange = y_range, xstyle = 1, ystyle = 1
+  PLOT, spe[j,*], xrange = x_range[j,*], yrange = y_range, xstyle = 1, ystyle = 1
     oplot,[r1[0],r1[0]], !y.crange, line = 2
     oplot,[r1[1],r1[1]], !y.crange, line = 2
  
