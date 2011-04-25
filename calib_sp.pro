@@ -94,6 +94,8 @@ FOR j=0,1 DO BEGIN
 ENDWHILE
 ENDFOR
 
-outpar= linfit(peakch,pens)
+outpar=fltarr(2)
+outpar[1]= (pens[1]-pens[0])/(peakch[1]-peakch[0])
+outpar[0]=pens[0]-(peakch[0]*outpar[1])
 
 END
