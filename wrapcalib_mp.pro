@@ -1,5 +1,5 @@
 pro wrapcalib_mp,  instr, maxpix, iocstr, binsize=binsize, instr2=inst2, $
-pens=pens, npol=npol, pixlist=pixlist,planar=planar
+pens=pens, npol=npol, pixlist=pixlist,planar=planar, renumerate=renumerate
 
 ; This program is a wrapper for wrapcalib_str_sp to calibrate many pixel
 ; from either the MPA system, or the RENA system. In fact, this is a
@@ -31,13 +31,30 @@ pens=pens, npol=npol, pixlist=pixlist,planar=planar
 ;binsize: bin parameter to aid fitting. if one spectrum a float, if two spectra fltarr[2]
 ;
 ;npol: polynomial degree in fitting. 
+;
+;renumerate: check if the input structure is renumerated
+;
+;Original committed: 26/04/2011
+;
+;changes
+;
+;28/04/2011
+;Original version assumes renumarated input structure, should be
+;changed to include non-renumerated cases
+;
+;
 
 IF NOT keyword_set(binsize) then binsize=[1,1]
 IF NOT keyword_set(inst2) THEN inst2=0 
 IF NOT keyword_set(pens) THEN pens=[122.1, 136.5]
 IF NOT keyword_set(npol) THEN npol=1
-IF NOT keyword_set(pixlist) THEN pixlist=indgen[maxpix]
 IF NOT keyword_set(planar) THEN planar=0
+IF NOT keyword_setx(renumerate) THEN renumerate=1
+IF NOT keyword_set(pixlist) THEN BEGIN
+   IF renumerate THEN pixlist=indgen[maxpix] ELSE $
+      pixlist=where(indgen[maxpix+1] NE planar)
+ENDIF
+
 
 npix=n_elements(pixlist) ; Number of pixels to calibrate
 
@@ -46,7 +63,10 @@ IF planar THEN BEGIN
    wrapcalib_str_sp, instr, pix, outpar, ps=ps, filename=filename,$ 
 binsize=binsize, instr2=inst2, pens=pens, npol=npol, /planar
 
-   iocstr.pch2e=outpar ; check the format of the structure
+   iocstr.pch2e=outpar 
+
+;This part should guarantee that without renumerate calibcorev works right
+   IF NOT renumerate THEN iocstr.ach2e[planar,*]=outpar ;just for completeness
 
 ENDIF ELSE BEGIN
 
@@ -58,7 +78,7 @@ ENDIF ELSE BEGIN
  instr2=inst2, pens=pens, npol=npol
         condl = DIALOG_MESSAGE('Are you happy with the calibration',/Ques)
       ENDWHILE
-      iocstr.ach2e[i,*]=outpar
+      iocstr.ach2e[pixlist[i],*]=outpar
    ENDFOR
 ENDELSE
 
