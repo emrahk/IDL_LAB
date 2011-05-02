@@ -24,14 +24,15 @@ pro crcalib_mp_mpa, iocstr, hv=hv, st=st, cgain=cgain, fgain=fgain,$
 ;A bug was fixed so that if input structure is provided, it prints the 
 ;parameters from the input structure, not the defaults
 ;
+;Floats turned into integers
 
 IF NOT keyword_set(maxc) THEN maxc=15
-IF NOT keyword_set(hv) THEN hv=300.
-IF NOT keyword_set(st) THEN st=1.
-IF NOT keyword_set(cgain) THEN cgain=0.
-IF NOT keyword_set(fgain) THEN fgain=6.
-IF NOT keyword_set(offset) THEN offset=65.
-IF NOT keyword_set(pza) THEN pza=50.
+IF NOT keyword_set(hv) THEN hv=300
+IF NOT keyword_set(st) THEN st=1
+IF NOT keyword_set(cgain) THEN cgain=0
+IF NOT keyword_set(fgain) THEN fgain=6
+IF NOT keyword_set(offset) THEN offset=65
+IF NOT keyword_set(pza) THEN pza=50
 IF NOT keyword_set(nch) THEN nch=4096
 
 IF NOT keyword_set(iocstr) THEN BEGIN
