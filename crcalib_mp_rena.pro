@@ -16,6 +16,13 @@ pro crcalib_mp_rena, iocstr, hv=hv, st=st, fr=fr, fc=fc,$
 ;fc: Feedback Capacitor
 ;fet: FET size
 ;maxc: number of pixels
+;
+;May 3 2011
+;
+;A bug was fixed so that if input structure is provided, it prints the 
+;parameters from the input structure, not the defaults
+;
+
 
 IF NOT keyword_set(maxc) THEN maxc=36
 IF NOT keyword_set(hv) THEN hv=300
@@ -40,11 +47,11 @@ IF cont THEN BEGIN
  cond3='No'
  WHILE cond3 eq 'No' DO BEGIN
     PRINT, 'These are the parameters to be saved'
-    PRINT, '1. High Voltage: ',hv
-    PRINT, '2. Shaping Time: ',st
-    PRINT, '3. Feedback Capacitor: ',fc
-    PRINT, '4. Feedback Resistor: ',fr
-    PRINT, '5. Fet size', fet
+    PRINT, '1. High Voltage: ',calib.hv
+    PRINT, '2. Shaping Time: ',calib.st
+    PRINT, '3. Feedback Capacitor: ',calib.fc
+    PRINT, '4. Feedback Resistor: ',calib.fr
+    PRINT, '5. Fet size', calib.fet
     wait,0.25
     inp=''
     READ, 'TYPE the number of parameter to be changed, or PRESS any other key to exit:',inp
