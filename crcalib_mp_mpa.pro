@@ -18,6 +18,12 @@ pro crcalib_mp_mpa, iocstr, hv=hv, st=st, cgain=cgain, fgain=fgain,$
 ;pza: point zero
 ;nch: number of channels in the spectrum
 ;maxc: number of pixels
+;
+;May 2 2011
+;
+;A bug was fixed so that if input structure is provided, it prints the 
+;parameters from the input structure, not the defaults
+;
 
 IF NOT keyword_set(maxc) THEN maxc=15
 IF NOT keyword_set(hv) THEN hv=300.
@@ -44,13 +50,13 @@ IF cont THEN BEGIN
  cond3='No'
  WHILE cond3 eq 'No' DO BEGIN
     PRINT, 'These are the parameters to be saved'
-    PRINT, '1. High Voltage: ',hv
-    PRINT, '2. Shaping Time: ',st
-    PRINT, '3. Coarse Gain: ',cgain
-    PRINT, '4. Fine Gain: ',fgain
-    PRINT, '5. Offset: 65', offset
-    PRINT, '6. Pole Zero Adj.', pza
-    PRINT, '7. Numer of ADC Channels: ',nch
+    PRINT, '1. High Voltage: ',calib.hv
+    PRINT, '2. Shaping Time: ',calib.st
+    PRINT, '3. Coarse Gain: ',calib.cgain
+    PRINT, '4. Fine Gain: ',calib.fgain
+    PRINT, '5. Offset: 65', calib.offset
+    PRINT, '6. Pole Zero Adj.', calib.pza
+    PRINT, '7. Number of ADC Channels: ',calib.nch
     wait,0.25
     inp=''
     READ, 'TYPE the number of parameter to be changed, or PRESS any other key to exit:',inp
