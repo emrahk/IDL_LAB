@@ -12,6 +12,9 @@ pens=pens, npol=npol, pixlist=pixlist,planar=planar, renumerate=renumerate
 ;maxpix: maximum input anode channel, it will calibrate all from
 ;channel 0 to maxpis. Ignored if pixlist is given.
 ;
+;IF planar is set then maxpix corresponds to channel with which the
+;planar spectrum is created!
+;
 ;iocstr: input/output structure for calibrating event lists
 ;further. it is both input and output to preserve measurements 
 ;from earlier OUTPUTS
@@ -42,6 +45,8 @@ pens=pens, npol=npol, pixlist=pixlist,planar=planar, renumerate=renumerate
 ;Original version assumes renumarated input structure, should be
 ;changed to include non-renumerated cases
 ;
+;02/05/2011
+;A bug is fixed such that planar case works fine
 ;
 
 IF NOT keyword_set(binsize) then binsize=[1,1]
@@ -60,7 +65,7 @@ npix=n_elements(pixlist) ; Number of pixels to calibrate
 
 IF planar THEN BEGIN
    
-   wrapcalib_str_sp, instr, pix, outpar, ps=ps, filename=filename,$ 
+   wrapcalib_str_sp, instr, maxpix, outpar, ps=ps, filename=filename,$ 
 binsize=binsize, instr2=inst2, pens=pens, npol=npol, /planar
 
    iocstr.pch2e=outpar 
