@@ -23,6 +23,9 @@ pro calibcorev, ev, calib, evc, pln=pln, pixlist=pixlist, renumerate=renumarate
 ;
 ;renumerate: if set, then input calibration file is renumerated
 ;
+;03/05/2011
+;if pixlist is given with renueration, indices after planar should
+;have been increased.
 
 IF NOT keyword_set(pln) then pln=0
 IF NOT keyword_setx(renumerate) THEN renumerate=1
@@ -31,13 +34,16 @@ IF NOT keyword_set(pixlist) THEN BEGIN
    npix=calib.maxc
    IF renumerate THEN pixlist=where(indgen(npix+1) NE pln) ELSE $
       pixlist=indgen(npix)
-ENDIF ELSE npix=n_elements(pixlist)
+ENDIF ELSE BEGIN     ;here we need to be careful with planar again
+   npix=n_elements(pixlist)
+   IF renumerate THEN pixlist[where(pixlist GE pln)]=pixlist[where(pixlist GE pln)]+1
+ENDELSE
 
 evc=float(ev)
 sz=size(ev)
 
 
-;if not renumerated planar is already in the calibratino file
+;if not renumerated planar is already in the calibration file
 ; guaranteed by wrapcalib_mp
 FOR i=0, npix-1 DO BEGIN
    print,'i: ',i
