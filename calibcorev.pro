@@ -37,8 +37,9 @@ IF NOT keyword_set(pixlist) THEN BEGIN
    IF renumerate THEN pixlist=where(indgen(npix+1) NE pln) ELSE $
       npixlist=indgen(npix)
 ENDIF ELSE BEGIN     ;here we need to be careful with planar again
+   npixlist=pixlist
    npix=n_elements(pixlist)
-   IF renumerate THEN npixlist[where(pixlist GE pln)]=pixlist[where(pixlist GE pln)]+1 ELSE npixlist=pixlist
+   IF renumerate THEN npixlist[where(pixlist GE pln)]=pixlist[where(pixlist GE pln)]+1
 ENDELSE
 
 evc=float(ev)
