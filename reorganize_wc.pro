@@ -20,7 +20,11 @@ evl=evlist
 ;renumerate: If the planar electrode is not the last ADC, this gives you the option of recounting the anodes
 ;from 0. 
 ;outstr: optional structure with all events, used for diagnostics.
-
+;
+;03/05/11
+;
+;if the threshold is given too low, there is no noise event created problems for diagnostic. Now checks
+;if there are noise events present
 
 IF NOT keyword_set(catn) THEN catn=0
 IF NOT keyword_set(maxc) THEN BEGIN
@@ -101,130 +105,132 @@ IF singles0[0] ne -1 THEN BEGIN
     ENDIF
 ENDIF
 
-
 ;handle below threshold for diagnostic purposes
 
 noise_events_ind=where((temporary_evl lt an_thr) and (temporary_evl gt 0) ,noise_count)
-evln=evla
-evln[noise_events_ind]=1
-sharen=total(evln(0:maxc-1,*),1)
+
+IF noise_events_ind[0] NE -1 THEN BEGIN
+  evln=evla
+  evln[noise_events_ind]=1
+  sharen=total(evln(0:maxc-1,*),1)
 
 
-singlen=where(sharen eq 1)
-doublen=where(sharen eq 2)
-triplen=where(sharen eq 3)
-quadn=where(sharen eq 4)
-multn=where(sharen gt 4)
-detn=(where(evln(*,singlen) eq 1) mod maxc)
-IF doublen[0] ne -1 THEN detdn=(where(evln(*,doublen) eq 1) mod maxc)
-IF triplen[0] ne -1 THEN dettn=(where(evln(*,triplen) eq 1) mod maxc)
-IF quadn[0] ne -1 THEN detqn=(where(evln(*,quadn) eq 1) mod maxc)
+  singlen=where(sharen eq 1)
+  doublen=where(sharen eq 2)
+  triplen=where(sharen eq 3)
+  quadn=where(sharen eq 4)
+  multn=where(sharen gt 4)
+  detn=(where(evln(*,singlen) eq 1) mod maxc)
+  IF doublen[0] ne -1 THEN detdn=(where(evln(*,doublen) eq 1) mod maxc)
+  IF triplen[0] ne -1 THEN dettn=(where(evln(*,triplen) eq 1) mod maxc)
+  IF quadn[0] ne -1 THEN detqn=(where(evln(*,quadn) eq 1) mod maxc)
 
 
-;start with singles
+  ;start with singles
 
-evla=temporary_evl
-sumn=total(evla(0:maxc-1,singlen),1)
-outstr[singlen].flag='thresh_1'
-cgt=where(evlc(singlen) GE cat_thr)
-IF cgt[0] ne -1 THEN BEGIN
- outstr[singlen[cgt]].flag='ca_only_1'
- outstr[singlen[cgt]].caten=evlc[singlen[cgt]]
- ENDIF
-
-outstr[singlen].en[0]=sumn
-outstr[singlen].toten=sumn
-outstr[singlen].det[0]=detn
-
-;continue with doubles
-
-;since the number is much less easier to work with a for loop to
-;ease further calculations
-
-IF doublen[0] ne -1 THEN BEGIN
-  sumn=total(evla(0:maxc-1,doublen),1)
-  outstr[doublen].flag='thresh_2'
-  cgt=where(evlc(doublen) GE cat_thr)
+  evla=temporary_evl
+  sumn=total(evla(0:maxc-1,singlen),1)
+  outstr[singlen].flag='thresh_1'
+  cgt=where(evlc(singlen) GE cat_thr)
   IF cgt[0] ne -1 THEN BEGIN
-    outstr[doublen[cgt]].flag='ca_only_2'
-    outstr[doublen[cgt]].caten=evlc[doublen[cgt]]
-    ENDIF
-    
-  outstr[doublen].toten=sumn
+  outstr[singlen[cgt]].flag='ca_only_1'
+  outstr[singlen[cgt]].caten=evlc[singlen[cgt]]
+  ENDIF
 
-  FOR j=0L,n_elements(doublen)-1L DO BEGIN
-    dtsn=[detdn[2*j],detdn[2*j+1L]]
-    ensn=evl(dtsn,doublen(j))
+  outstr[singlen].en[0]=sumn
+  outstr[singlen].toten=sumn
+  outstr[singlen].det[0]=detn
+
+  ;continue with doubles
+
+  ;since the number is much less easier to work with a for loop to
+  ;ease further calculations
+
+  IF doublen[0] ne -1 THEN BEGIN
+    sumn=total(evla(0:maxc-1,doublen),1)
+    outstr[doublen].flag='thresh_2'
+    cgt=where(evlc(doublen) GE cat_thr)
+    IF cgt[0] ne -1 THEN BEGIN
+      outstr[doublen[cgt]].flag='ca_only_2'
+      outstr[doublen[cgt]].caten=evlc[doublen[cgt]]
+      ENDIF
+    
+    outstr[doublen].toten=sumn
+
+    FOR j=0L,n_elements(doublen)-1L DO BEGIN
+      dtsn=[detdn[2*j],detdn[2*j+1L]]
+      ensn=evl(dtsn,doublen(j))
       outstr[doublen(j)].det[0:1]=dtsn
       outstr[doublen(j)].en[0:1]=ensn
-  ENDFOR
-ENDIF
+      ENDFOR
+      ENDIF
 
-;first make sure triple events exist
-IF triplen(0) ne -1 THEN BEGIN
+  ;first make sure triple events exist
+  IF triplen(0) ne -1 THEN BEGIN
 
-  sumn=total(evla(0:maxc-1,triplen),1)
-  outstr[triplen].flag='thresh_3'
-  cgt=where(evlc(triplen) GE cat_thr)
-  IF cgt[0] ne -1 THEN BEGIN
-    outstr[triplen[cgt]].flag='ca_only_3'
-    outstr[triplen[cgt]].caten=evlc[triplen[cgt]]
-    ENDIF
+    sumn=total(evla(0:maxc-1,triplen),1)
+    outstr[triplen].flag='thresh_3'
+    cgt=where(evlc(triplen) GE cat_thr)
+    IF cgt[0] ne -1 THEN BEGIN
+      outstr[triplen[cgt]].flag='ca_only_3'
+      outstr[triplen[cgt]].caten=evlc[triplen[cgt]]
+      ENDIF
     
-  outstr[triplen].toten=sumn
+    outstr[triplen].toten=sumn
 
-  FOR j=0L,n_elements(triplen)-1L DO BEGIN
-    dettjn=[dettn[3*j],dettn[3*j+1L],dettn[3*j+2L]]
-    ensn=evl(dettjn,triplen(j))
-    outstr[triplen(j)].det[0:2]=dettjn
-    outstr[triplen(j)].en[0:2]=evla(dettjn,triplen(j))
-  ENDFOR
-ENDIF
+    FOR j=0L,n_elements(triplen)-1L DO BEGIN
+      dettjn=[dettn[3*j],dettn[3*j+1L],dettn[3*j+2L]]
+      ensn=evl(dettjn,triplen(j))
+      outstr[triplen(j)].det[0:2]=dettjn
+      outstr[triplen(j)].en[0:2]=evla(dettjn,triplen(j))
+      ENDFOR
+      ENDIF
 
-IF quadn(0) ne -1 THEN BEGIN
+  IF quadn(0) ne -1 THEN BEGIN
 
-  sumn=total(evla(0:maxc-1,quadn),1)
-  outstr[quadn].flag='thresh_4'
-  cgt=where(evlc(quadn) GE cat_thr)
-  IF cgt[0] ne -1 THEN BEGIN
-    outstr[quadn[cgt]].flag='ca_only_4'
-    outstr[quadn[cgt]].caten=evlc[quadn[cgt]]
-    ENDIF
+    sumn=total(evla(0:maxc-1,quadn),1)
+    outstr[quadn].flag='thresh_4'
+    cgt=where(evlc(quadn) GE cat_thr)
+    IF cgt[0] ne -1 THEN BEGIN
+      outstr[quadn[cgt]].flag='ca_only_4'
+      outstr[quadn[cgt]].caten=evlc[quadn[cgt]]
+      ENDIF
 
-  outstr[quadn].toten=sumn
+    outstr[quadn].toten=sumn
 
-  FOR j=0L,n_elements(quadn)-1L DO BEGIN
-    detqjn=[detqn[4*j],detqn[4*j+1L],detqn[4*j+2L],detqn[4*j+3L]]
-    ensn=evl(detqjn,quadn(j))
-    outstr[quadn(j)].det[0:3]=detqjn
-    outstr[quadn(j)].en[0:3]=evla(detqjn,quadn(j))
-  ENDFOR
-ENDIF
+    FOR j=0L,n_elements(quadn)-1L DO BEGIN
+      detqjn=[detqn[4*j],detqn[4*j+1L],detqn[4*j+2L],detqn[4*j+3L]]
+      ensn=evl(detqjn,quadn(j))
+      outstr[quadn(j)].det[0:3]=detqjn
+      outstr[quadn(j)].en[0:3]=evla(detqjn,quadn(j))
+      ENDFOR
+      ENDIF
 
-IF multn(0) ne -1 THEN BEGIN
+  IF multn(0) ne -1 THEN BEGIN
 
-  sumn=total(evla(0:maxc-1,multn),1)
-  outstr[multn].flag='thresh_m'
-  cgt=where(evlc(multn) GE cat_thr)
-  IF cgt[0] ne -1 THEN BEGIN 
-    outstr[multn[cgt]].flag='ca_only_m'
-    outstr[multn[cgt]].caten=evlc[multn[cgt]]
-    ENDIF
-  outstr[multn].toten=sumn
+    sumn=total(evla(0:maxc-1,multn),1)
+    outstr[multn].flag='thresh_m'
+    cgt=where(evlc(multn) GE cat_thr)
+    IF cgt[0] ne -1 THEN BEGIN 
+      outstr[multn[cgt]].flag='ca_only_m'
+      outstr[multn[cgt]].caten=evlc[multn[cgt]]
+      ENDIF
+      outstr[multn].toten=sumn
 
-  FOR j=0,n_elements(multn)-1L DO BEGIN
-    dmn=where(evla(0:maxc-1,multn[j]) gt 0)
-    outstr[multn(j)].det[0:3]=dmn[0:3]
-    outstr[multn(j)].en[0:3]=evla(dmn[0:3],multn(j))
-  ENDFOR
-  ;no individual energy information
-ENDIF
+    FOR j=0,n_elements(multn)-1L DO BEGIN
+      dmn=where(evla(0:maxc-1,multn[j]) gt 0)
+      outstr[multn(j)].det[0:3]=dmn[0:3]
+      outstr[multn(j)].en[0:3]=evla(dmn[0:3],multn(j))
+      ENDFOR
+      ;no individual energy information
+  ENDIF
 
+ENDIF ELSE evla=temporary_evl
 ;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ;now clean below threshold to avoid wrong summations and continue
 noise_events_ind=where(evla lt an_thr ,noise_count)
-evla(noise_events_ind)=0
+IF noise_events_ind[0] NE -1 THEN evla(noise_events_ind)=0
 
 ;following irfan determine singles,doubles,triples and quadrupoles at once
 
