@@ -7,6 +7,9 @@ pro calibmpa_temp
 ;reference plus first time fits
 
 ;input variables for data reading, if necessary
+;
+;03/05/2011
+; calib variable was used instead of calstr, fixed.
 
 data_dir='' ;directory name for the event list data
 infile1=data_dir+'/' ;event list file for input 1
@@ -90,13 +93,13 @@ pens=pens, npol=npol, pixlist=pixlist,planar=planar, renumerate=renumerate
 
 ;save the calibration structure with an appropriate filename
 
-hvs=strtrim(string(calib.hv),1)
-sts=strtrim(string(calib.st),1)
-cgs=strtrim(string(calib.cgain),1)
-fgs=strtrim(string(calib.fgain),1)
-nchs=strtrim(string(calib.nch),1)
-offs=strtrim(string(calib.offset),1)
-pzas=strtrim(string(calib.pza),1)
+hvs=strtrim(string(calstr.hv),1)
+sts=strtrim(string(calstr.st),1)
+cgs=strtrim(string(calstr.cgain),1)
+fgs=strtrim(string(calstr.fgain),1)
+nchs=strtrim(string(calstr.nch),1)
+offs=strtrim(string(calstr.offset),1)
+pzas=strtrim(string(calstr.pza),1)
 
 fnamestr='cal_mpa_hv'+hvs+'_st'+sts+'_cg'+cgs+'_fg'+fgs+'_nch'+$
          nchs+'_off'+offs+'_pza'+pzas+'.sav'
@@ -126,6 +129,11 @@ reorganize_wc,evc1,ane_thr,cate_thr,cleanc1,catn=pln,maxc=n_elements(active_adc)
 ;if necessary the second file
 
 reorganize_wc,evc1,ane_thr,cate_thr,cleanc1,catn=pln,maxc=n_elements(active_adc),renumerate=renumerate
+
+;==================
+;or you can directly calibrate the structures
+
+;Calibcorstr,clean1,calstr,cleanc1, pixlist=pixlist
 
 ;==================
 
