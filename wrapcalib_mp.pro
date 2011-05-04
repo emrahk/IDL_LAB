@@ -48,6 +48,8 @@ pens=pens, npol=npol, pixlist=pixlist,planar=planar, renumerate=renumerate
 ;02/05/2011
 ;A bug is fixed such that planar case works fine
 ;
+;03/05/2011
+;syntax error fixed related to indgen
 
 IF NOT keyword_set(binsize) then binsize=[1,1]
 IF NOT keyword_set(inst2) THEN inst2=0 
@@ -56,8 +58,8 @@ IF NOT keyword_set(npol) THEN npol=1
 IF NOT keyword_set(planar) THEN planar=0
 IF NOT keyword_setx(renumerate) THEN renumerate=1
 IF NOT keyword_set(pixlist) THEN BEGIN
-   IF renumerate THEN pixlist=indgen[maxpix] ELSE $
-      pixlist=where(indgen[maxpix+1] NE planar)
+   IF renumerate THEN pixlist=indgen(maxpix) ELSE $
+      pixlist=where(indgen(maxpix+1) NE planar)
 ENDIF
 
 
