@@ -28,13 +28,17 @@ pro calibcorev, ev, calib, evc, pln=pln, pixlist=pixlist, renumerate=renumarate
 ;have been increased. 
 ;
 ;pixlist original must be kept! create npixlist
+;
+;04/05/11
+;skipped to change one pixlist to npixlist, fixed
+;
 
 IF NOT keyword_set(pln) then pln=0
 IF NOT keyword_setx(renumerate) THEN renumerate=1
 
 IF NOT keyword_set(pixlist) THEN BEGIN
    npix=calib.maxc
-   IF renumerate THEN pixlist=where(indgen(npix+1) NE pln) ELSE $
+   IF renumerate THEN npixlist=where(indgen(npix+1) NE pln) ELSE $
       npixlist=indgen(npix)
 ENDIF ELSE BEGIN     ;here we need to be careful with planar again
    npixlist=pixlist
