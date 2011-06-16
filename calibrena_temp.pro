@@ -11,6 +11,10 @@ pro calibrena_temp
 ;04/05/11
 ;changes are implemented to make it parallel with mpa case
 
+;16/06/11
+;further changes are implemented to make it parallel, read_rena_bin changed to
+;read_rena_binary
+
 data_dir='' ;directory name for the event list data
 infile1=data_dir+'/' ;event list file for input 1
 infile2=data_dir+'/' ;event list file for input 2, if necessary
@@ -24,24 +28,22 @@ renumerate=1    ;renumarate pixel sequence taking cathode out?
 
 ;read by choosing the file from the directory
 
-;clean1=pickreadorg_wp(an_thr=an_thr,cat_thr=cat_thr, $
-;                       pln=pln, data_dir=data_dir, renumerate=renumerate)
+;read_rena_bin, ev1, pln, data_dir=data_dir
 
 ;or better read using the filenames so that a record is kept for which
 ;file has been used
 
-read_rena_bin, ev1, pln
+read_rena_binary, infile1, ev1,pln
 reorganize_wc,ev1,an_thr,cat_thr,clean1,catn=pln,maxc=n_elements(active_adc),renumerate=renumerate
 
 ;do the same for second file if necessary
 
-;clean2=pickreadorg_wp(an_thr=an_thr,cat_thr=cat_thr, $
-;                       pln=pln, data_dir=data_dir, renumerate=renumerate)
+;read_rena_bin, ev2, pln, data_dir=data_dir
 
 ;or better read using the filenames so that a record is kept for which
 ;file has been used
 
-read_rena_bin, ev2, pln
+read_rena_binary, infile2, ev2, pln
 reorganize_wc,ev2,an_thr,cat_thr,clean2,catn=pln,maxc=n_elements(active_adc),renumerate=renumerate
 
 ;===============================
