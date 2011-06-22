@@ -22,6 +22,9 @@ pro crcalib_mp_rena, iocstr, hv=hv, st=st, fr=fr, fc=fc,$
 ;A bug was fixed so that if input structure is provided, it prints the 
 ;parameters from the input structure, not the defaults
 ;
+;June 22 2011
+;
+;duplicate st tag, bug fixed
 
 
 IF NOT keyword_set(maxc) THEN maxc=36
@@ -32,7 +35,7 @@ IF NOT keyword_set(fr) THEN fr=200
 IF NOT keyword_set(fet) THEN fet=450
 
 IF NOT keyword_set(iocstr) THEN BEGIN
-   calib=create_struct('maxc',maxc,'hv',hv,'st',st,'st',st,$
+   calib=create_struct('maxc',maxc,'hv',hv,'st',st,$
                        'fr',fr,'fc',fc,'fet',fet,$
                        'ach2e',fltarr(maxc,2),'pch2e',[0.,0.])
    cont=1
