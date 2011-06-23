@@ -14,6 +14,9 @@ pro calibrena_temp
 ;16/06/11
 ;further changes are implemented to make it parallel, read_rena_bin changed to
 ;read_rena_binary
+;
+;22/06/11
+;a small bug was fixed to be used with a second file.
 
 data_dir='' ;directory name for the event list data
 infile1=data_dir+'/' ;event list file for input 1
@@ -123,7 +126,7 @@ reorganize_wc,evc1,ane_thr,cate_thr,cleanc1,catn=pln,maxc=n_elements(active_adc)
 
 ;if necessary the second file
 
-reorganize_wc,evc1,ane_thr,cate_thr,cleanc1,catn=pln,maxc=n_elements(active_adc),renumerate=renumerate
+reorganize_wc,evc2,ane_thr,cate_thr,cleanc2,catn=pln,maxc=n_elements(active_adc),renumerate=renumerate
 
 ;==================
 
