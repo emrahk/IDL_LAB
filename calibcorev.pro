@@ -28,13 +28,20 @@ pro calibcorev, ev, calib, evc, pln=pln, pixlist=pixlist, renumerate=renumarate
 ;have been increased. 
 ;
 ;pixlist original must be kept! create npixlist
+;
+;04/05/11
+;skipped to change one pixlist to npixlist, fixed
+;
+;22/06/11
+;problem with using correct pixlist. Bug fixed
+
 
 IF NOT keyword_set(pln) then pln=0
 IF NOT keyword_setx(renumerate) THEN renumerate=1
 
 IF NOT keyword_set(pixlist) THEN BEGIN
    npix=calib.maxc
-   IF renumerate THEN pixlist=where(indgen(npix+1) NE pln) ELSE $
+   IF renumerate THEN npixlist=where(indgen(npix+1) NE pln) ELSE $
       npixlist=indgen(npix)
 ENDIF ELSE BEGIN     ;here we need to be careful with planar again
    npixlist=pixlist
@@ -51,10 +58,10 @@ sz=size(ev)
 FOR i=0, npix-1 DO BEGIN
    print,'i: ',i
    print,'npixlist[i]: ',npixlist[i]
-   print,calib.ach2e(i,1)
-   print,calib.ach2e(i,0)
+   print,calib.ach2e(pixlist[i],1)
+   print,calib.ach2e(pixlist[i],0)
    zeros=where(ev[npixlist[i],*] eq 0) ;zeros remain zero
-   evc[npixlist[i],*]=ev[npixlist[i],*]*calib.ach2e(i,1)+calib.ach2e(i,0)+randomu(s,sz[2])-0.5
+   evc[npixlist[i],*]=ev[npixlist[i],*]*calib.ach2e(pixlist[i],1)+calib.ach2e(pixlist[i],0)+randomu(s,sz[2])-0.5
    evc[npixlist[i],zeros]=0.
 ENDFOR
 

@@ -16,6 +16,12 @@ if NOT keyword_set(npol) then npol=1  ; degree of polynomial in the fit, choices
 ;par: initial fit parameters. If not given, estimated from the data
 ;errs: errors can be provided with spe, or can be calculated assuming poisson
 
+;03/05/2011
+;make sure that x2 is within the spectra given
+
+
+IF x2 GE n_elements(sp) THEN x2=n_elements(sp)-1
+
 spec=sp(x1:x2) ; get the region to be fitted
 s_sp=size(sp(x1:x2)) 
 x_fit=indgen(s_sp(1))+x1;-1  ;create an x variable in the region of interest

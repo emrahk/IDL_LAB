@@ -29,7 +29,10 @@ binsize=binsize, instr2=inst2, pens=pens, npol=npol, planar=planar
 ;filename: if set with ps, encapsulated postscript is given this name.
 ;
 ;planar: If set calibrate the planar using the given pixel
-
+;
+;04/05/2011
+;IF one binsize given for input parameter, redefine to have an array with equaş binsizes for
+;both inputs
 IF NOT keyword_set(ps) THEN ps=0
 IF NOT keyword_set(ps) THEN filename='singlepixfit.eps'
 IF NOT keyword_set(binsize) then binsize=[1,1]
@@ -38,7 +41,7 @@ IF NOT keyword_set(pens) THEN pens=[122.1, 136.5]
 IF NOT keyword_set(npol) THEN npol=1
 IF NOT keyword_set(planar) THEN planar=0
 
-IF (inp2 AND (n_elements(binsize) eq 1)) THEN binsize=[binsize,binsize]
+IF (n_elements(binsize) eq 1) THEN binsize=[binsize,binsize]
  
 ;choose from a distribution of cathode to anode ratios
 print,'Choose a range by clicking on the right mouse button twice, and then push the left button to finish'

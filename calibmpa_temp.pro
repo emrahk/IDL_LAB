@@ -7,6 +7,12 @@ pro calibmpa_temp
 ;reference plus first time fits
 
 ;input variables for data reading, if necessary
+;
+;03/05/2011
+; calib variable was used instead of calstr, fixed.
+;
+;04/05/2011
+;more definitions made, an error redefining pln=planar fixed
 
 data_dir='' ;directory name for the event list data
 infile1=data_dir+'/' ;event list file for input 1
@@ -45,16 +51,14 @@ reorganize_wc,ev2,an_thr,cat_thr,clean2,catn=pln,maxc=n_elements(active_adc),ren
 
 ;Now create the structure for calibration
 
-
-
-maxc=15
-hv=300
-st=1
-cgain=0
-fgain=6
-offset=65
-pza=50
-nch=8192
+maxc=15 ; maximum number of pixels
+hv=300  ; high voltage
+st=1    ; shaping time
+cgain=0 ;coarse gain
+fgain=6 ;fine gain
+offset=65 ;offset
+pza=50 ;pole zero
+nch=8192 ;number of ADC channels
 
 crcalib_mp_mpa, calstr, hv=hv, st=st, cgain=cgain, fgain=fgain,$
  offset=offset, pza=pza, nch=nch, maxc=maxc
@@ -65,48 +69,46 @@ crcalib_mp_mpa, calstr, hv=hv, st=st, cgain=cgain, fgain=fgain,$
 
 ;First anodes
 
-maxpix=15
-binsize=[1.,1.]
-inst2=clean2
-pens=[122.1,136.4]
-npol=1
-;pixlist=[0,1,2,3]
-planar=0
-renumerate=1
+maxpix=15   ; number of anodes to fit from 0 (ignored if pixlist is given)
+binsize=[1.,1.]  ; binsize for different lines
+inst2=clean2     ;  second structure if necessary
+pens=[122.1,136.4]  ; peak energies
+npol=1  ; degree of polynomial in the background fit
+;pixlist=[0,1,2,3]  ; the pixels to be fit
+planar=0 ; do the anodes
+renumerate=1  ; renumerate used in reorganizing
 
 wrapcalib_mp,  clean1, maxpix, calstr, binsize=binsize, instr2=inst2, $
 pens=pens, npol=npol, pixlist=pixlist,planar=planar, renumerate=renumerate
 
 ;then planar
 
-planar=1
-maxpix=0
+planar=1  ; now do the planar
+maxpix=0  ; use pixel maxpix for obtaining cathode spectrum
 
 wrapcalib_mp,  clean1, maxpix, calstr, binsize=binsize, instr2=inst2, $
 pens=pens, npol=npol, pixlist=pixlist,planar=planar, renumerate=renumerate
-
 
 ;=============================
 
 ;save the calibration structure with an appropriate filename
 
-hvs=strtrim(string(calib.hv),1)
-sts=strtrim(string(calib.st),1)
-cgs=strtrim(string(calib.cgain),1)
-fgs=strtrim(string(calib.fgain),1)
-nchs=strtrim(string(calib.nch),1)
-offs=strtrim(string(calib.offset),1)
-pzas=strtrim(string(calib.pza),1)
+hvs=strtrim(string(calstr.hv),1)
+sts=strtrim(string(calstr.st),1)
+cgs=strtrim(string(calstr.cgain),1)
+fgs=strtrim(string(calstr.fgain),1)
+nchs=strtrim(string(calstr.nch),1)
+offs=strtrim(string(calstr.offset),1)
+pzas=strtrim(string(calstr.pza),1)
 
-fnamestr='cal_mpa_hv'+hvs+'_st'+sts+'_cg'+cgs+'_fg'+fgs+'_nch'+$
+;check the / \ for windows or unix
+fnamestr=data_dir+'/cal_mpa_hv'+hvs+'_st'+sts+'_cg'+cgs+'_fg'+fgs+'_nch'+$
          nchs+'_off'+offs+'_pza'+pzas+'.sav'
 save,calstr,filename=fnamestr
 
 ;============================
 
 ;do the calibration to the eventlists
-
-pln=planar
 
 calibcorev, ev1, calstr, evc1, pln=pln, pixlist=pixlist, renumerate=renumerate
 
@@ -126,6 +128,11 @@ reorganize_wc,evc1,ane_thr,cate_thr,cleanc1,catn=pln,maxc=n_elements(active_adc)
 ;if necessary the second file
 
 reorganize_wc,evc1,ane_thr,cate_thr,cleanc1,catn=pln,maxc=n_elements(active_adc),renumerate=renumerate
+
+;==================
+;or you can directly calibrate the structures
+
+;Calibcorstr,clean1,calstr,cleanc1, pixlist=pixlist
 
 ;==================
 
