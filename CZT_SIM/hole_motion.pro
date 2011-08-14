@@ -32,6 +32,9 @@ pro hole_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
 ;plotps: If this option is selected, user gets plots as a ps file
 ;namef: optional postscript output filename
 
+;August 14, 2011, A bug on the definition of posy was fixed,
+;cathode weighting potential is now correctly set
+
 IF NOT keyword_set(plotout) THEN plotout=0
 IF NOT keyword_set(plotps) THEN plotps=0
 
@@ -46,13 +49,14 @@ z_thick = 5.0                       ; mm. Detector z thickness
 x_length = 19.54                    ; mm. Detector x length  
 
 gx = 0.005                          ; Default x grid spacing
+gy = 0.005                          ; Default y grid spacing
 gz = 0.005                          ; Default z grid spacing
 
 ;y position for cathode
 IF NOT KEYWORD_SET(posy) then BEGIN
   slice=reform(WP_Cath[*,950])
-  posy=where(slice eq max(slice))
-  ENDIF
+  y=where(slice eq max(slice))
+ENDIF ELSE y = floor(posy/gy) 
 
 ;------ HOLE MOTION --------
 ;In the following, hole motion along the electric field lines are obtained
@@ -62,7 +66,7 @@ xhv = xh_actual
 
 th_actual=0.                        ; Starting time
 
-x = floor(xstart/gx)                          ; Initial hole position in x 
+x = floor(xstart/gx)                          ; Initial hole position in x
 z = floor(zstart/gz)                          ; Initial hole position in z
 
 zh_actual= zstart
@@ -74,7 +78,7 @@ QTindC = 0.
 QTindST = 0.
 
 QA_ind_h  = Qr_h*WP_Ano[x,z]        ; Initial induced Charge on the anode site 
-QC_ind_h  = Qr_h*WP_Cath[x,z]       ; Initial induced Charge on the cathode site 
+QC_ind_h  = Qr_h*WP_Cath[y,z]       ; Initial induced Charge on the cathode site 
 QST_ind_h = Qr_h*WP_ST[x,z]         ; Initial induced Charge on the steering electodes 
 
 t=0.                                ; Starting time
@@ -103,7 +107,7 @@ L_h = (tauh*mobh)*sqrt(Efieldx[x,z]^2+Efieldz[x,z]^2)  ; Le is the minority carr
 QT_h[x,z] = Qr_h*(1.-Exp(-L/L_h))    ; Trapped charge along the field lines
 Qr_h      = Qr_h*Exp(-L/L_h)         ; Remaining induced charge after trapping
 QTindA=QTindA+(QT_h[x,z]*WP_Ano[x,z])    ;this is an approximation that may be problematic for large x movements
-QTindC=QTindC+(QT_h[x,z]*WP_Cath[posy,z])    ;this is an approximation that may be problematic for large x movements
+QTindC=QTindC+(QT_h[x,z]*WP_Cath[y,z])    ;this is an approximation that may be problematic for large x movements
 QTindST=QTindST+(QT_h[x,z]*WP_ST[x,z])    ;this is an approximation that may be problematic for large x movements
 
 ;----- CHECK THE DIRECTION OF ELECTRIC FIELD LINES -------
@@ -124,7 +128,7 @@ xh_actual = [xh_actual,xhv]
 zh_actual = [zh_actual,z*0.005]
 
 QA_ind_h = [QA_ind_h, Qr_h*WP_Ano[x,z] + QTindA]     ; Final induced charge on anode site
-QC_ind_h = [QC_ind_h, Qr_h*WP_Cath[x,z] + QTindC]   ; Final induced charge on cathode site
+QC_ind_h = [QC_ind_h, Qr_h*WP_Cath[y,z] + QTindC]   ; Final induced charge on cathode site
 QST_ind_h = [QST_ind_h, Qr_h*WP_ST[x,z] + QTindST]     ; Final induced charge on steering electrode site
 
 IF (((z mod 10) eq 0) OR (z LT 10)) THEN print, x,z, L_h, L, QA_ind_h[n_elements(QA_ind_h)-1],QC_ind_h[n_elements(QC_ind_h)-1],xh_actual[n_elements(xh_actual)-1], zh_actual[n_elements(zh_actual)-1]
