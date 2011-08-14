@@ -32,6 +32,9 @@ pro electron_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
 ;plotps: If this option is selected, user gets plots as a ps file
 ;namef: output postscript filename
 
+;August 14, 2011, A bug on the definition of posy was fixed
+
+
 IF NOT keyword_set(plotout) THEN plotout=0
 IF NOT keyword_set(plotps) THEN plotps=0
 
@@ -46,6 +49,7 @@ x_length = 19.54                    ; mm. Detector x length
 
 gx = 0.005                          ; Default x grid spacing in mm
 gz = 0.005                          ; Default z grid spacing in mm
+gy = 0.005
 
 ;y position for cathode
 IF NOT KEYWORD_SET(posy) then BEGIN
@@ -63,6 +67,7 @@ ze_actual= zstart               ;record for the full array
 te_actual=0.                        ; Initial actual time
 
 x = floor(xstart/gx)                ; Initial electron position in x
+y = floor(posy/gy)
 z = floor(zstart/gz)                ; Initial electron position in z
 
 
