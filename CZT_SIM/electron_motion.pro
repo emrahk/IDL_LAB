@@ -3,11 +3,12 @@
 
 pro electron_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
  te_actual, xe_actual, ze_actual, QA_ind_e, QC_ind_e, QST_ind_e,$
-   ypos = posy, etau=taue, emob=mobe, plotout=plotout, plotps=plotps, fname=namef
+   ypos = posy, etau=taue, emob=mobe, plotout=plotout, plotps=plotps, fname=namef,$
+   verbose=verbose
 
 ;INPUTS
 ;xstart: start position in the x direction in mm
-;zstart: start position in the z direction in units of fine grid
+;zstart: start position in the z direction in mm
 ;Efieldx: x component of the electric field
 ;Efieldz: z component of the electric field
 ;WP_Ano: Weihgting potential of the anode
@@ -16,8 +17,12 @@ pro electron_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
 ;OPTIONAL INPUTS
 ;taue: trapping time of electrons
 ;mobe : electron mobility
-;posy : fixed y position for calculating cathode signal. If not given, assumed to be the center
-;of the cathode
+;posy : fixed y position for calculating cathode signal. If not given, 
+;       assumed to be the center of the cathode
+;verbose: if set screen output for diagnostic is produced. The default
+;         parameters to be shown are x, z, t, QA_ind_e, QC_ind_e
+
+
 ;
 ;OUTPUTS
 ;te_actual: time variable with respect to the motion of electrons
@@ -32,12 +37,19 @@ pro electron_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
 ;plotps: If this option is selected, user gets plots as a ps file
 ;namef: output postscript filename
 
+;=======NOTES, BUG Fixes
 ;August 14, 2011, A bug on the definition of posy was fixed as well
 ;as a bug on cathode weighting potential definition
 
+;Still going in a loop at negative electric fields, maybe it is not
+;physical. For now I will write a routine to catch the loop and get
+;out with a warning message
+
+;August 15, 2011, verbose keyword added, minor fixes on description
 
 IF NOT keyword_set(plotout) THEN plotout=0
 IF NOT keyword_set(plotps) THEN plotps=0
+IF NOT keyword_set(verbose) THEN verbose=0
 
 aa = size(Efieldz)
 
@@ -86,7 +98,9 @@ t=0.                                ; Starting time
 
 ;------ OBTAIN INDUCED CHARGES WITH RESPECT TO THE DIRECTON OF ELECTRIC FIELD ------
 
-WHILE ((z NE 0) AND (Abs(Efieldz[x,z]) GT 1.)) DO BEGIN
+loopcheck=1
+
+WHILE ((z NE 0) AND (Abs(Efieldz[x,z]) GT 1.) AND loopcheck) DO BEGIN
 
 ; Start while loop, except z=0 calculate actual x dimension and time
 ; Check electric field and make sure electron moves
@@ -123,6 +137,12 @@ ENDIF ELSE BEGIN
 ENDELSE
 
 x=floor(xev/gx+0.5)                       ; Obtain new x position in the nearest grid point
+
+IF ((Efieldz[x,z] LT 0.) AND (Abs(Dxe/gx) LT 1.)) THEN BEGIN
+   loopcheck=0 
+   print, 'motion will be stopped here to avoid loop'
+ENDIF
+
 xe_actual = [xe_actual,xev]
 ze_actual = [ze_actual,z*0.005]
 
@@ -130,8 +150,11 @@ QA_ind_e = [QA_ind_e, Qr_e*WP_Ano[x,z] + QTindA]     ; Final induced charge on a
 QC_ind_e = [QC_ind_e, Qr_e*WP_Cath[y,z] + QTindC]   ; Final induced charge on cathode site
 QST_ind_e = [QST_ind_e, Qr_e*WP_ST[x,z] + QTindST]     ; Final induced charge on steering electrode site
 
-IF (((z mod 10) eq 0) OR (z LT 10)) THEN print, x,z, L_e, L, QA_ind_e[n_elements(te_actual)-1],QC_ind_e[n_elements(te_actual)-1]
-;IF (((z mod 10) eq 0) OR (z LT 10)) THEN print, x,z,ze_actual[n_elements(ze_actual)-1],gz
+IF verbose THEN $
+                IF (((z mod 10) eq 0) OR (z LT 10)) THEN $
+                print, x,z, t, QA_ind_e[n_elements(te_actual)-1],$
+                       QC_ind_e[n_elements(te_actual)-1]
+
 ENDWHILE
 
 IF (plotout or plotps) THEN BEGIN
