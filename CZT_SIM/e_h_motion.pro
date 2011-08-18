@@ -5,7 +5,7 @@ pro e_h_motion, xstart,zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST, $
  te_actual=te_actual, xe_actual=xe_actual, ze_actual=ze_actual, $
  QA_ind_e=QA_ind_e, QC_ind_e=QC_ind_e, QST_ind_e=QST_ind_e, $
  th_actual=th_actual, xh_actual=xh_actual, zh_Actual=zh_actual,$
- QA_ind_h=QA_ind_h, QC_ind_h=QC_ind_h, QST_ind_h=QST_ind_h, $
+ QA_ind_h=QA_ind_h, QC_ind_h=QC_ind_h, QST_ind_h=QST_ind_h, coarsegridpos=poscoarsegrid, $
  plotout=plotout, plotps=plotps, fname=namef
  
  
@@ -24,6 +24,8 @@ pro e_h_motion, xstart,zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST, $
 ;posy : fixed y position for calculating cathode signal. If not given, assumed to be the center
 ;of the cathode
 ;fname : name of the output postscript file
+;poscoarsegrid : one can set where coarse gridding starts and end default=[0.5,4.5] mm
+
 ;
 ;OPTIONAL OUTPUTS
 ;te(h)_actual: time variable with respect to the motion of electrons (holes)
@@ -36,6 +38,10 @@ pro e_h_motion, xstart,zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST, $
 ;OPTIONS
 ;plotout: If this option is selected, user gets plots on the screen
 ;plotps: If this option is selected, user gets plots as a ps file
+
+;=====NOTES BUG FIXES
+;
+;18 August 2011, poscoarsegrid keyword added
  
 IF NOT keyword_set(plotout) THEN plotout=0
 IF NOT keyword_set(plotps) THEN plotps=0
@@ -43,11 +49,11 @@ IF NOT keyword_set(plotps) THEN plotps=0
 
 electron_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
  te_actual, xe_actual, ze_actual, QA_ind_e, QC_ind_e, QST_ind_e,$
-   ypos = posy, etau=taue, emob=mobe, plotout=0, plotps=0
+   ypos = posy, etau=taue, emob=mobe, coarsegridpos=poscoarsegrid, plotout=0, plotps=0
    
 hole_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
  th_actual, xh_actual, zh_actual, QA_ind_h, QC_ind_h, QST_ind_h,$
-   ypos = posy, htau=tauh, hmob=mobh, plotout=0, plotps=0
+   ypos = posy, htau=tauh, hmob=mobh, coarsegridpos=poscoarsegrid, plotout=0, plotps=0
       
 xx = where(th_actual GT max(te_actual))
 t = [te_actual,th_actual[xx]]
