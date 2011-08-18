@@ -4,7 +4,7 @@
 pro hole_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
  th_actual, xh_actual, zh_actual, QA_ind_h, QC_ind_h, QST_ind_h,$
    ypos = posy, htau=tauh, hmob=mobh, plotout=plotout, plotps=plotps, fname=namef,$
-   verbose=verbose
+   verbose=verbose, coarsegridpos=poscoarsegrid
 
 ;INPUTS
 ;xstart: start position in the x direction in units of mm
@@ -13,6 +13,7 @@ pro hole_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
 ;Efieldz: z component of the electric field
 ;WP_Ano: Weihgting potential of the anode
 ;WP_Cath: Weighting potential of the cathode
+;WP_ST  : Weighting potential of the steering electrode
 ;
 ;OPTIONAL INPUTS
 ;tauh: trapping time of electrons
@@ -21,6 +22,8 @@ pro hole_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
 ;of the cathode
 ;verbose: if set screen output for diagnostic is produced. The default
 ;         parameters to be shown are x, z, t, QA_ind_h, QC_ind_h
+;poscoarsegrid : one can set where coarse gridding starts and end default=[0.5,4.5] mm
+
 
 ;OUTPUTS
 ;th_actual: timh variable with respect to the motion of holes
@@ -45,6 +48,9 @@ pro hole_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
 
 ;August 15, verbose keyword added, minor fixes on description
 
+;August 18, 2011, yet another stupid mistake, when z goes by 5, gz must go by 5*0.005
+;major effect on time and x position. In fact a coarsegrid position variable is set so
+;that one can adjust which part of the detector is coarse and which part is fine
 
 IF NOT keyword_set(plotout) THEN plotout=0
 IF NOT keyword_set(plotps) THEN plotps=0
@@ -63,6 +69,17 @@ x_length = 19.54                    ; mm. Detector x length
 gx = 0.005                          ; Default x grid spacing
 gy = 0.005                          ; Default y grid spacing
 gz = 0.005                          ; Default z grid spacing
+
+;coarse and finegrid indexes
+
+IF NOT keyword_set(poscoarsegrid) THEN BEGIN
+  coarsezstart=100
+  coarsezend=900
+  ENDIF ELSE BEGIN
+  coarsezstart=floor(poscoarsegrid[0]/gz)
+  coarsezend=floor(poscoarsegrid[1]/gz)
+  ENDELSE
+  
 
 ;y position for cathode
 IF NOT KEYWORD_SET(posy) then BEGIN
@@ -104,7 +121,7 @@ WHILE ((z NE 1000) AND (Abs(Efieldz[x,z]) GT 1.) AND loopcheck) DO BEGIN
 ; Check electric field and make sure electron moves
 
 
-IF (z LT 100 or z GT 900) THEN gz=0.001 ELSE gz=0.005
+IF ((z LT coarsezstart) OR (z GT coarsezend)) THEN gz=0.005 ELSE gz=0.025
 
 
 Dth = gz/(mobh*Efieldz[x,z])          ; Obtain time step
@@ -128,11 +145,11 @@ QTindST=QTindST+(QT_h[x,z]*WP_ST[x,z])    ;this is an approximation that may be 
 
 IF Efieldz[x,z] LT 0 THEN BEGIN        ; Define the Electric field lines.  
                                         
-   IF (z LT 100 or z GT 900) THEN z=z-1 ELSE z=z-5
+   IF ((z LT coarsezstart) OR (z GT coarsezend)) THEN z=z-1 ELSE z=z-5
 
 ENDIF ELSE BEGIN
  
-   IF (z LT 100 or z GT 900) THEN z=z+1 ELSE z=z+5
+   IF ((z LT coarsezstart) OR (z GT coarsezend)) THEN z=z+1 ELSE z=z+5
 
 ENDELSE
 
@@ -165,7 +182,7 @@ IF (plotout OR plotps) THEN BEGIN
     device, filename=namef
     ENDIF
   
-  IF NOT plotps THEN window,1,xsize=500,ysize=500
+  IF NOT plotps THEN window,1,xsize=800,ysize=200
   plot,xh_actual,zh_actual,yrange=[0.,5.],xtitle='Distance Along Detector(mm)',$
     ytitle='depth(mm)',title='Hole',xrange=[0.,20.],linestyle=2
     
