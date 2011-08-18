@@ -4,7 +4,7 @@
 pro electron_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
  te_actual, xe_actual, ze_actual, QA_ind_e, QC_ind_e, QST_ind_e,$
    ypos = posy, etau=taue, emob=mobe, plotout=plotout, plotps=plotps, fname=namef,$
-   verbose=verbose
+   verbose=verbose, coarsegridpos=poscoarsegrid
 
 ;INPUTS
 ;xstart: start position in the x direction in mm
@@ -13,6 +13,7 @@ pro electron_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
 ;Efieldz: z component of the electric field
 ;WP_Ano: Weihgting potential of the anode
 ;WP_Cath: Weighting potential of the cathode
+;WP_ST  : Weighting potential of the steering electrode
 ;
 ;OPTIONAL INPUTS
 ;taue: trapping time of electrons
@@ -21,7 +22,7 @@ pro electron_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
 ;       assumed to be the center of the cathode
 ;verbose: if set screen output for diagnostic is produced. The default
 ;         parameters to be shown are x, z, t, QA_ind_e, QC_ind_e
-
+;poscoarsegrid : one can set where coarse gridding starts and end default=[0.5,4.5] mm
 
 ;
 ;OUTPUTS
@@ -47,6 +48,17 @@ pro electron_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
 
 ;August 15, 2011, verbose keyword added, minor fixes on description
 
+;August 18, 2011, yet another stupid mistake, when z goes by 5, gz must go by 5*0.005
+;major effect on time and x position. In fact a coarsegrid position variable is set so
+;that one can adjust which part of the detector is coarse and which part is fine
+
+;further tets show that at the edge of the detector electron may try to get out. Now the
+;electron is placed back in the detector.
+
+;There still is a problem with going into loop at special values. current solution is demanding
+;that the absolute value of the electric field in z direction to be minimum 3, however, I need
+;to find a better fix to this problem.
+
 IF NOT keyword_set(plotout) THEN plotout=0
 IF NOT keyword_set(plotps) THEN plotps=0
 IF NOT keyword_set(verbose) THEN verbose=0
@@ -64,6 +76,16 @@ gx = 0.005                          ; Default x grid spacing in mm
 gz = 0.005                          ; Default z grid spacing in mm
 gy = 0.005
 
+;coarse and finegrid indexes
+
+IF NOT keyword_set(poscoarsegrid) THEN BEGIN
+  coarsezstart=100
+  coarsezend=900
+  ENDIF ELSE BEGIN
+  coarsezstart=floor(poscoarsegrid[0]/gz)
+  coarsezend=floor(poscoarsegrid[1]/gz)
+  ENDELSE
+  
 ;y position for cathode
 IF NOT KEYWORD_SET(posy) then BEGIN
   slice=reform(WP_Cath[*,950])
@@ -100,12 +122,16 @@ t=0.                                ; Starting time
 
 loopcheck=1
 
-WHILE ((z NE 0) AND (Abs(Efieldz[x,z]) GT 1.) AND loopcheck) DO BEGIN
+WHILE ((z NE 0) AND (Abs(Efieldz[x,z]) GT 3.) AND loopcheck) DO BEGIN
 
+;I am not happy about this magic number 3 here, need to find another way to 
+;catch this problem
+
+IF n_elements(z) GT 1 THEN STOP
 ; Start while loop, except z=0 calculate actual x dimension and time
 ; Check electric field and make sure electron moves
 
-IF (z LT 100 or z GT 900) THEN gz=0.001 ELSE gz=0.005
+IF ((z LT coarsezstart) OR (z GT coarsezend)) THEN gz=0.005 ELSE gz=0.025
 
 Dte = gz/(mobe*Efieldz[x,z])          ; Obtain time step
 t = t+Dte
@@ -123,24 +149,42 @@ QTindA=QTindA+(QT_e[x,z]*WP_Ano[x,z])    ;this is an approximation that may be p
 QTindC=QTindC+(QT_e[x,z]*WP_Cath[y,z])    ;this is an approximation that may be problematic for large x movements
 QTindST=QTindST+(QT_e[x,z]*WP_ST[x,z])    ;this is an approximation that may be problematic for large x movements
 
+;keep in the detector
+IF xev GE 19.54 THEN xev=19.54
+IF xev LT 0. THEN xev=0
+
+
 ;----- CHECK THE DIRECTION OF ELECTRIC FIELD LINES -------
 ; Electron moves through the anode
 
 IF Efieldz[x,z] LT 0 THEN BEGIN          ; Obtain the Electric field lines.
 
-   IF (z LT 100 or z GT 900) THEN z=z+1 ELSE z=z+5
+   IF ((z LT coarsezstart) OR (z GT coarsezend)) THEN z=z+1 ELSE z=z+5
 
 ENDIF ELSE BEGIN
 
-   IF (z LT 100 or z GT 900) THEN z=z-1 ELSE z=z-5
+   IF ((z LT coarsezstart) or (z GT coarsezend)) THEN z=z-1 ELSE z=z-5
 
 ENDELSE
 
 x=floor(xev/gx+0.5)                       ; Obtain new x position in the nearest grid point
 
+;make sure x stays in detector
+
+IF x GE aa[1] THEN BEGIN
+  IF verbose THEN print,'at the edge of detector, at 19.54'
+  x=aa[1]-1L
+  ENDIF
+  
+IF x LE 0. THEN BEGIN
+  IF verbose THEN print,'at the edge of detector, at 0'
+  x=0
+  ENDIF
+ 
+
 IF ((Efieldz[x,z] LT 0.) AND (Abs(Dxe/gx) LT 1.)) THEN BEGIN
    loopcheck=0 
-   print, 'motion will be stopped here to avoid loop'
+   IF verbose THEN print, 'motion will be stopped here to avoid loop'
 ENDIF
 
 xe_actual = [xe_actual,xev]
@@ -152,7 +196,7 @@ QST_ind_e = [QST_ind_e, Qr_e*WP_ST[x,z] + QTindST]     ; Final induced charge on
 
 IF verbose THEN $
                 IF (((z mod 10) eq 0) OR (z LT 10)) THEN $
-                print, x,z, t, QA_ind_e[n_elements(te_actual)-1],$
+                print, x,z,t, QA_ind_e[n_elements(te_actual)-1],$
                        QC_ind_e[n_elements(te_actual)-1]
 
 ENDWHILE
@@ -165,7 +209,7 @@ IF (plotout or plotps) THEN BEGIN
     device, filename=namef
     ENDIF
  
-  IF NOT plotps THEN window,1,xsize=500,ysize=500
+  IF NOT plotps THEN window,1,xsize=800,ysize=200
   plot,xe_actual,ze_actual,yrange=[0.,5.],xtitle='Distance Along Detector(mm)',ytitle='depth(mm)',title='Electron',xrange=[0.,20.]
   ; Obtain the placement of anodes
   obox,0.337,0,0.637,0.1
