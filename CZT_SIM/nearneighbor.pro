@@ -3,7 +3,7 @@
 ;neighbors
 
 pro nearneighbor, xpos, ypos, zpos, nn, wpaall, wpcall, wpstall, efx, efz,$
-                  t, qa_out, qc_out, qst_out, $
+                  t, qa_out, qc_out, qst_out, coarsegridpos=poscoarsegrid, $
                   etau=taue, htau=tauh, emob=mobe, hmob=mobh,$
                   plotout=plotout, plotps=plotps, fname=namef
 
@@ -23,6 +23,8 @@ pro nearneighbor, xpos, ypos, zpos, nn, wpaall, wpcall, wpstall, efx, efz,$
 ;namef: name of the postscript file
 ;taue(h): trapping time of electrons (holes)
 ;mobe(h) : electron (hole) mobility
+;poscoarsegrid : one can set where coarse gridding starts and end default=[0.5,4.5] mm
+
 ;
 ;OUTPUTS
 ;
@@ -30,6 +32,9 @@ pro nearneighbor, xpos, ypos, zpos, nn, wpaall, wpcall, wpstall, efx, efz,$
 ;qa_out: output induced charge on anodes with n neighbors
 ;qc_out: output induced charge on cathdes with n neighbors
 ;qst_out: output induced charge on steering electrodes with n neighbors
+
+;==NOTES, BUG FIXES
+;18 August 2011, poscoarsegrid keyword added
 
 IF NOT keyword_set(plotps) THEN plotps=0
 IF NOT keyword_set(plotout) THEN plotout=0
@@ -89,7 +94,7 @@ FOR i=-nn,nn DO BEGIN
     IF NOT (skipanode AND skipcathode AND skipse) THEN BEGIN
        e_h_motion, xpos,zpos, efx, efz, wpa, wpc, wpst, $
                    t,qa,qc,qst, xe_actual=xe_actual, ze_actual=ze_actual, $
-                   xh_actual = xh_actual, zh_actual = zh_actual, $
+                   xh_actual = xh_actual, zh_actual = zh_actual, coarsegridpos=poscoarsegrid, $
                    ypos=ypos, etau=taue, htau=tauh, emob=mobe, hmob=mobh,$
                    plotout=0, plotps=0
        IF NOT skipanode THEN qa_out[i+nn,0:n_elements(qa)-1L]=qa
