@@ -35,31 +35,40 @@ pro nearneighbor, xpos, ypos, zpos, nn, wpaall, wpcall, wpstall, efx, efz,$
 
 ;==NOTES, BUG FIXES
 ;18 August 2011, poscoarsegrid keyword added
+;
+;21 August 2011, the way anode and steering electrode is set up (at least anode) is incorrect
+;this may be partially caused by comsol, but to be consistent we need to determine them
+;with a separate program
 
 IF NOT keyword_set(plotps) THEN plotps=0
 IF NOT keyword_set(plotout) THEN plotout=0
 
-;Determine the anode, cathode and steering electrode triple for the
-;given position.
 
 ;define initially the outputs
 qa_out=fltarr(2*nn+1,1000)
 qc_out=fltarr(2*nn+1,1000)
 qst_out=fltarr(2*nn+1,1000)
 
-
+;cathode easy
 pitch=19.54/16.
-an = floor(xpos/pitch)
 cn = floor(ypos/pitch)
-;the steering electrode pitch is irregular, need a trick to find the
-;SE number
-selimits=[4.370,7.970, 11.560, 15.170, 19.54] 
-setest=sort([selimits,xpos])
-sen=where(setest eq 5)
 
-print, 'Anode no: ',an
+;firt determine the end x position
+
+single_track, xpos, zpos, efx, efz, xac, zac, verbose=0
+
+;then determine the anode and steering electrodes
+
+finxpos=xac(n_elements(xac)-1L)
+
+getfinelec, finxpos, finelec, wpaall, wpstall
+
+print, 'Anode no: ',finelec.an
 print, 'Cathode no: ',cn
-print, 'Steering no: ',sen
+print, 'Steering no: ',finelec.sen
+
+an=finelec.an
+sen=finelec.sen
 
 ;Now do it!
 
