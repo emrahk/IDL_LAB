@@ -18,6 +18,12 @@ pro read_single_ef, eoutx, eoutz, resolution=resolution,plotc=plotc, showt=showt
 ;         file is picked with a dialog window.
 ;         Use as infiles=['fname_efieldx', 'fname_efieldz']
 ; data_dir: directory that holds the input files
+;
+;NOTES - BUG Fixes
+;
+;23 August 2011, if a fine grid is used, then read_table limits the table size if actual 
+;size is not given. This is fixed by first determining number of lines. Same fix should go 
+;into reading weighting potential file.
 
 IF NOT KEYWORD_SET(showt) THEN showt=0
 IF NOT KEYWORD_SET(plotc) THEN plotc=0
@@ -33,7 +39,9 @@ IF pickf THEN infile=dialog_pickfile(/READ,filter='*.txt',title='Pick Electric F
 
 ;read data
 ;read electric field
-ef=read_table(infile,head=8)
+
+nlines=file_lines(infile)
+ef=read_table(infile,head=8,nmax=nlines)
 x1 = ef(0,*) & z1 = ef(1,*) & E_x = ef(2,*) & E_z = ef(3,*)
 
 ; Triangulation of Irregular Data

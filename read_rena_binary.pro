@@ -15,8 +15,11 @@ pro read_rena_binary, infile, outev, pl, allevents=allevents
 ;OPTIONAL OUTPUTS
 ;
 ;allevents: includes stamps and early hits
-
-
+;
+;NOTES BUG FIXES
+;
+;In the case of reading just one channel, there are no "morehits". Now program checks for it
+;
 openr,1,infile
 status=fstat(1)
 n_events=status.size/6L
@@ -32,7 +35,7 @@ morehits=where(allevents(1,*) ge 128)
 hitborder=where(allevents(1,*) lt 128)
 
 mhind=intarr(n_events)
-mhind(morehits)=1
+IF morehits[0] NE -1 THEN mhind(morehits)=1
 chan=reform(allevents(1,*)-mhind*128)
 
 ;get ADC
@@ -56,5 +59,5 @@ for j=1L, nev-1L do begin
   endfor
 
 xx=where(outev[pl,*] ne 0)
-outev[pl,xx]=16384-outev[pl,xx]
+IF xx[0] NE -1 THEN outev[pl,xx]=16384-outev[pl,xx]
 end

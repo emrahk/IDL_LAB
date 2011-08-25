@@ -15,12 +15,17 @@ pro read_single_wp, wpout, resolution=resolution,plotc=plotc, showt=showt, $
 ; infile: If specified, this is the filename read as dir+infile. If not specified,
 ;         file is picked with a dialog window
 ; data_dir: directory that holds the input files
+;
+;23 August 2011, if a fine grid is used, then read_table limits the table size if actual 
+;size is not given. This is fixed by first determining number of lines. Same fix should go 
+;into reading weighting potential file.
 
 IF NOT KEYWORD_SET(showt) THEN showt=0
 IF NOT KEYWORD_SET(plotc) THEN plotc=0
 IF NOT KEYWORD_SET(filein) THEN pickf=1 else pickf=0
 
-;why these magic numbers? 
+;The magic numbers are set by Ozge's initial setup of the simulation area
+
 IF NOT keyword_set(resolution) THEN resolution=[4709,1841]
 IF NOT keyword_set(dir) THEN dir='/Users/emrahkalemci/CZTMODEL/COMSOL_OUT/WPA/'
 
@@ -28,7 +33,8 @@ IF pickf THEN infile=dialog_pickfile(/READ,filter='*.txt',title='Pick Weighting 
   infile=dir+filein
 
 ;read data
-aep=read_table(infile,head=8)
+nlines=file_lines(infile)
+aep=read_table(infile,head=8,nmax=nline)
 x1 = aep(0,*) & z1 = aep(1,*) & V1 = aep(2,*)
 
 ; Triangulation of Irregular Data
