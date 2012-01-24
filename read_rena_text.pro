@@ -5,7 +5,7 @@ pro read_rena_text,codat,pl, data_dir=data_dir, fname=fname
 
 ;INPUT
 ;
-;pl: channel number of planar
+;pl: an array of channel numbers of planar or cathodes
 ;
 ;OUTPUT
 ;
@@ -16,6 +16,13 @@ pro read_rena_text,codat,pl, data_dir=data_dir, fname=fname
 ;data_dir: directory with the data
 ;
 ;fname: filename to be read
+;
+;NOTES & BUG FIXES
+;
+;JAN 24 2012
+;
+;Now the program handles an array of channels
+;
 
 ;get the full filename
 IF (keyword_set(data_dir) AND keyword_set(fname)) THEN filename=data_dir+fname
@@ -69,9 +76,12 @@ close,1
   
 codat=codat[*,0:j]
 
-;take cate of the planar
-xx=where(codat[pl,*] ne 0)
-codat[pl,xx]=16384-codat[pl,xx]
+;take care of the planar
+
+FOR k=0, n_elements(pl)-1 DO BEGIN
+   xx=where(codat[pl[k],*] ne 0)
+   IF xx[0] NE -1 THEN codat[pl[k],xx]=16384-codat[pl[k],xx]
+ENDFOR
   
 END
   
