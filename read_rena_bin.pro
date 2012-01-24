@@ -8,7 +8,7 @@ pro read_rena_bin, outev, pl, allevents=allevents, data_dir=data_dir
 ;
 ;infile : name of the RENA binary file
 ;
-;pl: the channel number for planar
+;pl: an array of the channel numbers for planar
 ;
 ;OUTPUTS
 ;
@@ -22,6 +22,10 @@ pro read_rena_bin, outev, pl, allevents=allevents, data_dir=data_dir
 ;
 ;data_dir : data directory to search for files
 ;
+
+;Jan 24, 2012
+;
+;Now the program allows an array of planar or cathode electrodes.
 
 IF NOT keyword_set(data_dir) THEN data_dir='./'
 fname=dialog_pickfile(filter='*.bin',title='filename',GET_PATH=path,PATH=data_dir)
@@ -64,6 +68,9 @@ for j=1L, nev-1L do begin
   for k=0,evhit-1 do outev(chan(hitborder(j)-k),j)=adc(hitborder(j)-k)
   endfor
 
-xx=where(outev[pl,*] ne 0)
-outev[pl,xx]=16384-outev[pl,xx]
+for k=0,n_elements(pl)-1 do begin
+   xx=where(outev[pl[k],*] ne 0)
+   IF xx[0] NE -1 THEN outev[pl[k],xx]=16384-outev[pl[k],xx]
+endfor
+
 end
