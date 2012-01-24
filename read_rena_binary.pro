@@ -6,7 +6,7 @@ pro read_rena_binary, infile, outev, pl, allevents=allevents
 ;
 ;infile : name of the RENA binary file
 ;
-;pl: the channel number for planar
+;pl: an array of the channel numbers for planar or cathodes
 ;
 ;OUTPUTS
 ;
@@ -20,6 +20,10 @@ pro read_rena_binary, infile, outev, pl, allevents=allevents
 ;
 ;In the case of reading just one channel, there are no "morehits". Now program checks for it
 ;
+;JAN' 24 2012
+;
+;Now the program handles more than one planar or cathode channels
+
 openr,1,infile
 status=fstat(1)
 n_events=status.size/6L
@@ -58,6 +62,8 @@ for j=1L, nev-1L do begin
   for k=0,evhit-1 do outev(chan(hitborder(j)-k),j)=adc(hitborder(j)-k)
   endfor
 
-xx=where(outev[pl,*] ne 0)
-IF xx[0] NE -1 THEN outev[pl,xx]=16384-outev[pl,xx]
+for k=0,n_elements(pl)-1 do begin
+   xx=where(outev[pl[k],*] ne 0)
+   IF xx[0] NE -1 THEN outev[pl[k],xx]=16384-outev[pl[k],xx]
+endfor
 end
