@@ -43,6 +43,9 @@ binsize=binsize, instr2=inst2, pens=pens, npol=npol, canoc=canoc, anoc=anoc,$
 ;30/01/2012
 ;
 ;NOTES & BUG FIXES
+;
+;02/02/2012
+;instr2 used instead of inst2 inside program, syntax error fixed.
 
 IF NOT keyword_set(ps) THEN ps=0
 IF NOT keyword_set(ps) THEN filename='singlepixfit.eps'
@@ -180,14 +183,14 @@ IF (ans+cats+ses) NE 1 THEN $
 
       print,'For the second input structure, choose a range by clicking on the right mouse button twice, and then push the left button to finish'
 
-      IF (canoc eq -1) THEN xast2=where((instr2.flag eq 'single') and $
-                                     (instr2.det[0] eq pix)) ELSE $
-                         xast2=where((instr2.flag eq 'single') and $
-                                     (instr2.det[0] eq pix) and $
-                                     (instr2.cadet[0] eq canoc))
+      IF (canoc eq -1) THEN xast2=where((inst2.flag eq 'single') and $
+                                     (inst2.det[0] eq pix)) ELSE $
+                         xast2=where((inst2.flag eq 'single') and $
+                                     (inst2.det[0] eq pix) and $
+                                     (inst2.cadet[0] eq canoc))
 
 
-    plot,histogram(instr2[xast2].car,min=0,bins=0.01),xr=[0,300] ;this assumes the cathode calibration is not far off from the anode calibration
+    plot,histogram(inst2[xast2].car,min=0,bins=0.01),xr=[0,300] ;this assumes the cathode calibration is not far off from the anode calibration
 
 
     moncurs, x_tab=x_tab
@@ -199,14 +202,14 @@ IF (ans+cats+ses) NE 1 THEN $
     wait,0.5
   
     ;choose the data with the good cathode to anode ratio
-    IF (canoc eq -1) THEN xlst2=where((instr2.flag eq 'single') and $
-                                         (instr2.det[0] eq pix) and $
-          ((instr2.car gt x_tab1[0]) and (instr2.car lt x_tab1[1]))) ELSE $
-           xlst2=where((instr2.flag eq 'single') and (instr2.cadet[0] eq canoc) $
-                                  and (instr2.det[0] eq pix) and $
-          ((instr2.car gt x_tab1[0]) and (instr2.car lt x_tab1[1])))
+    IF (canoc eq -1) THEN xlst2=where((inst2.flag eq 'single') and $
+                                         (inst2.det[0] eq pix) and $
+          ((inst2.car gt x_tab1[0]) and (inst2.car lt x_tab1[1]))) ELSE $
+           xlst2=where((inst2.flag eq 'single') and (inst2.cadet[0] eq canoc) $
+                                  and (inst2.det[0] eq pix) and $
+          ((inst2.car gt x_tab1[0]) and (inst2.car lt x_tab1[1])))
 
-    spe2=histogram(instr[xlst2].toten,min=0,bins=binsize[0])
+    spe2=histogram(inst2[xlst2].toten,min=0,bins=binsize[0])
     xr2=[1,n_elements(spe2)] ;this is required for plotting
 
   ENDIF
@@ -214,13 +217,13 @@ IF (ans+cats+ses) NE 1 THEN $
   IF cats THEN BEGIN
     print,'For the second structure, choose a range by clicking on the right mouse button twice, and then push the left button to finish'
   
-    IF (anoc eq -1) THEN xast2=where((instr2.cflag eq 'single') and $
-                                     (instr2.cadet[0] eq pix)) ELSE $
-                         xast2=where((instr2.cflag eq 'single') and $
-                                     (instr2.cadet[0] eq pix) and $
-                                     (instr2.det[0] eq anoc))
+    IF (anoc eq -1) THEN xast2=where((inst2.cflag eq 'single') and $
+                                     (inst2.cadet[0] eq pix)) ELSE $
+                         xast2=where((inst2.cflag eq 'single') and $
+                                     (inst2.cadet[0] eq pix) and $
+                                     (inst2.det[0] eq anoc))
 
-    plot,histogram(instr2[xast2].car,min=0,bins=0.01),xr=[0,300] ;this assumes the cathode calibration is not far off from the anode calibration
+    plot,histogram(inst2[xast2].car,min=0,bins=0.01),xr=[0,300] ;this assumes the cathode calibration is not far off from the anode calibration
 
 
     moncurs, x_tab=x_tab
@@ -232,14 +235,14 @@ IF (ans+cats+ses) NE 1 THEN $
     wait,0.5
 
     ;choose the data with the good cathode to anode ratio
-    IF (canoc eq -1) THEN xlst2=where((instr2.cflag eq 'single') and $
-                                         (instr2.cadet[0] eq pix) and $
-          ((instr2.car gt x_tab1[0]) and (instr2.car lt x_tab1[1]))) ELSE $
-           xlst2=where((instr2.cflag eq 'single') and (instr2.det[0] eq anoc) $
-                                  and (instr2.cadet[0] eq pix) and $
-          ((instr2.car gt x_tab1[0]) and (instr2.car lt x_tab1[1])))
+    IF (canoc eq -1) THEN xlst2=where((inst2.cflag eq 'single') and $
+                                         (inst2.cadet[0] eq pix) and $
+          ((inst2.car gt x_tab1[0]) and (inst2.car lt x_tab1[1]))) ELSE $
+           xlst2=where((inst2.cflag eq 'single') and (inst2.det[0] eq anoc) $
+                                  and (inst2.cadet[0] eq pix) and $
+          ((inst2.car gt x_tab1[0]) and (inst2.car lt x_tab1[1])))
 
-  spe2=histogram(instr2[xlst2].caten,min=0,bins=binsize[0])
+  spe2=histogram(inst2[xlst2].caten,min=0,bins=binsize[0])
   xr2=[1,n_elements(spe2)] ;this is required for plotting
 
   ENDIF
@@ -252,8 +255,8 @@ IF (ans+cats+ses) NE 1 THEN $
   WHILE cond1 EQ 'No' DO BEGIN
     WHILE cond2 EQ 'No' DO BEGIN
 
-      IF ans THEN spe2=histogram(instr2[xlst2].toten,min=0,bins=binsize[0]) 
-      IF cats THEN spe2=histogram(instr2[xlst2].caten,min=0,bins=binsize[0]) 
+      IF ans THEN spe2=histogram(inst2[xlst2].toten,min=0,bins=binsize[0]) 
+      IF cats THEN spe2=histogram(inst2[xlst2].caten,min=0,bins=binsize[0]) 
 
 
       plot,spe2,xtitle='Channel',ytitle='Counts/bin',xr=xr2
