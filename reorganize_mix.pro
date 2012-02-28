@@ -1,4 +1,5 @@
-pro reorganize_mix,evlist,an_thr,cat_thr,se_thr,clean,outstr=outstr,catn=cats,anotn=anots,sen=ses
+pro reorganize_mix,evlist,an_thr,cat_thr,se_thr,clean,outstr=outstr,$
+  catn=cats,anotn=anots,sen=ses,inse=inse, semap=mapse
 
 ;this program creates a structure that holds all share information neatly for event lists
 ;coming either from RENA or MPA system. The program allows more than one cathode, and also 
@@ -27,9 +28,11 @@ pro reorganize_mix,evlist,an_thr,cat_thr,se_thr,clean,outstr=outstr,catn=cats,an
 ;
 ;outstr: optional structure with all events, used for diagnostics.
 ;
+;inse: if set, include steering electrode good events in the clean
+;
+;mapse: it sets the actual steering electrode channel
 ;
 ;Used by:
-;
 ;
 ;
 ;Uses
@@ -41,12 +44,17 @@ pro reorganize_mix,evlist,an_thr,cat_thr,se_thr,clean,outstr=outstr,catn=cats,an
 ;30/01/2012
 ;
 ;NOTES & BUG FIXES
-
+;
+;steering electrode added, 07/02/2012
+;
+;steering electrode map added 27/02/2012
+;
 
 IF NOT keyword_set(cats) THEN cats=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
 IF NOT keyword_set(anots) THEN anots=[17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
 IF NOT keyword_set(ses) THEN ses=[33,34,35]
-
+IF NOT keyword_set(inse) THEN inse=0
+IF NOT keyword_set(mapse) THEN mapse=[1,3,5]
 
 ;definition of flags
 ;
@@ -72,11 +80,12 @@ IF NOT keyword_set(ses) THEN ses=[33,34,35]
 ;
 
 
-;now call anode and cathode reorganizing routines
+;now call anode, cathode and steering electrode reorganizing routines
 
 reorganize_anodes,evlist,an_thr,outstr,anotn=anots
 reorganize_cathodes,evlist,cat_thr,outstr,catn=cats
- 
+reorganize_se, evlist, se_thr, outstr, sen=ses , semap=mapse
+
 ;redefine flags for clean only!
 ;
 
@@ -115,5 +124,12 @@ ENDIF
 
 
 clean.car=clean.caten/clean.toten
+IF inse THEN BEGIN
+   xx=where(outstr[casig].sflag eq 'single')
+   IF xx[0] NE -1 THEN BEGIN
+      clean=[clean,outstr[casig[xx]]]
+   ENDIF
+ENDif
+
 
 END
