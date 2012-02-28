@@ -30,6 +30,16 @@ binsize=binsize, instr2=inst2, pens=pens, npol=npol, canoc=canoc, anoc=anoc,$
 ;
 ;filename: if set with ps, encapsulated postscript is given this name.
 ;
+;canoc: cathode to use in anode and steering electrode calibration, if not set use all cathodes 
+;
+;anoc: anode to use in cathode calibration, if not set use all anodes
+;
+;ans: calibrate anodes
+;
+;cats: calibrate cathodes
+;
+;ses: calibrate steering electrodes
+;
 ;
 ;Used by:
 ;
@@ -46,6 +56,15 @@ binsize=binsize, instr2=inst2, pens=pens, npol=npol, canoc=canoc, anoc=anoc,$
 ;
 ;02/02/2012
 ;instr2 used instead of inst2 inside program, syntax error fixed.
+;
+;steering electrode implemented, 07/02/2012
+;
+;a bug about new binsize setting for steering electrode fixed, 24/02/2012
+;
+;it was realized that thresh must be used in anodes to get steering electrode
+;calibration right because those are the events without charge sharing 27/02/2012
+;
+
 
 IF NOT keyword_set(ps) THEN ps=0
 IF NOT keyword_set(ps) THEN filename='singlepixfit.eps'
@@ -129,7 +148,7 @@ IF (ans+cats+ses) NE 1 THEN $
    wait,0.5
 
     ;choose the data with the good cathode to anode ratio
-    IF (canoc eq -1) THEN xlst=where((instr.cflag eq 'single') and $
+    IF (anoc eq -1) THEN xlst=where((instr.cflag eq 'single') and $
                                          (instr.cadet[0] eq pix) and $
           ((instr.car gt x_tab1[0]) and (instr.car lt x_tab1[1]))) ELSE $
              xlst=where((instr.cflag eq 'single') and (instr.det[0] eq anoc) $
@@ -140,8 +159,43 @@ IF (ans+cats+ses) NE 1 THEN $
     xr1=[1,n_elements(spe1)] ;this is required for plotting
 
 
-  ENDIF
+ENDIF
 
+ IF ses THEN BEGIN
+      print,'Choose a range by clicking on the right mouse button twice, and then push the left button to finish'
+
+      ;if an cathode is provided, use that cathode, otherwise use all anodes
+      IF (canoc eq -1) THEN xsst1=where((instr.sflag eq 'single') and (instr.aflag eq 'thresh') and $
+                                     (instr.sedet[0] eq pix)) ELSE $
+                         xsst1=where((instr.sflag eq 'single') and (instr.aflag eq 'thresh') and $
+                                     (instr.sedet[0] eq pix) and $
+                                     (instr.cadet[0] eq canoc))
+
+      secr=instr.caten/instr.seen
+      plot,histogram(secr[xsst1],min=0,bins=0.01),xr=[0,300] ;this assumes the cathode calibration is not far off from the se calibration
+
+
+    moncurs, x_tab=x_tab
+    x_tab1=x_tab/100.
+
+    oplot,[1,1]*x_tab1[0]*100.,[0,!y.crange[1]]
+    oplot,[1,1]*x_tab1[1]*100.,[0,!y.crange[1]]
+
+   wait,0.5
+
+    ;choose the data with the good cathode to anode ratio
+    IF (canoc eq -1) THEN xsst=where((instr.sflag eq 'single') and (instr.aflag eq 'thresh') and $
+                                         (instr.sedet[0] eq pix) and $
+          ((secr gt x_tab1[0]) and (secr lt x_tab1[1]))) ELSE $
+             xsst=where((instr.sflag eq 'single') and (instr.cadet[0] eq canoc) $
+                                  and (instr.sedet[0] eq pix) and (instr.aflag eq 'thresh') and $
+          ((secr gt x_tab1[0]) and (secr lt x_tab1[1])))
+
+    spe1=histogram(instr[xsst].seen,min=0,bins=binsize[0])
+    xr1=[1,n_elements(spe1)] ;this is required for plotting
+
+
+  ENDIF
 
   cond1='No'
   cond2='No'
@@ -152,6 +206,7 @@ IF (ans+cats+ses) NE 1 THEN $
 
       IF ans THEN spe1=histogram(instr[xlst].toten,min=0,bins=binsize[0]) 
       IF cats THEN spe1=histogram(instr[xlst].caten,min=0,bins=binsize[0]) 
+      IF ses THEN spe1=histogram(instr[xsst].seen,min=0,bins=binsize[0])
 
       ;plot with the new binsize
       plot,spe1,xtitle='Channel',ytitle='Counts/bin',xr=xr1
@@ -235,7 +290,7 @@ IF (ans+cats+ses) NE 1 THEN $
     wait,0.5
 
     ;choose the data with the good cathode to anode ratio
-    IF (canoc eq -1) THEN xlst2=where((inst2.cflag eq 'single') and $
+    IF (anoc eq -1) THEN xlst2=where((inst2.cflag eq 'single') and $
                                          (inst2.cadet[0] eq pix) and $
           ((inst2.car gt x_tab1[0]) and (inst2.car lt x_tab1[1]))) ELSE $
            xlst2=where((inst2.cflag eq 'single') and (inst2.det[0] eq anoc) $
@@ -247,6 +302,40 @@ IF (ans+cats+ses) NE 1 THEN $
 
   ENDIF
 
+    IF ses THEN BEGIN
+
+      print,'For the second input structure, choose a range by clicking on the right mouse button twice, and then push the left button to finish'
+
+      IF (canoc eq -1) THEN xsst2=where((inst2.sflag eq 'single') and (inst2.aflag eq 'thresh') and $
+                                     (inst2.sedet[0] eq pix)) ELSE $
+                         xsst2=where((inst2.sflag eq 'single') and (inst2.aflag eq 'thresh') and $
+                                     (inst2.sedet[0] eq pix) and $
+                                     (inst2.cadet[0] eq canoc))
+
+    secr2=inst2.caten/inst2.seen
+    plot,histogram(secr2[xsst2],min=0,bins=0.01),xr=[0,300] ;this assumes the cathode calibration is not far off from the steering electrode calibration
+
+
+    moncurs, x_tab=x_tab
+    x_tab1=x_tab/100.
+
+    oplot,[1,1]*x_tab1[0]*100.,[0,!y.crange[1]]
+    oplot,[1,1]*x_tab1[1]*100.,[0,!y.crange[1]]
+
+    wait,0.5
+  
+    ;choose the data with the good cathode to anode ratio
+    IF (canoc eq -1) THEN xsst2=where((inst2.sflag eq 'single') and (inst2.aflag eq 'thresh') and $
+                                         (inst2.sedet[0] eq pix) and $
+          ((secr2 gt x_tab1[0]) and (secr2 lt x_tab1[1]))) ELSE $
+           xsst2=where((inst2.sflag eq 'single') and (inst2.cadet[0] eq canoc) $
+                                  and (inst2.sedet[0] eq pix) and (inst2.aflag eq 'thresh') and $
+          ((secr2 gt x_tab1[0]) and (secr2 lt x_tab1[1])))
+
+    spe2=histogram(inst2[xsst2].seen,min=0,bins=binsize[0])
+    xr2=[1,n_elements(spe2)] ;this is required for plotting
+
+  ENDIF
 
   cond1='No'
   cond2='No'
@@ -257,7 +346,7 @@ IF (ans+cats+ses) NE 1 THEN $
 
       IF ans THEN spe2=histogram(inst2[xlst2].toten,min=0,bins=binsize[0]) 
       IF cats THEN spe2=histogram(inst2[xlst2].caten,min=0,bins=binsize[0]) 
-
+      IF ses THEN  spe2=histogram(inst2[xsst2].seen,min=0,bins=binsize[0])
 
       plot,spe2,xtitle='Channel',ytitle='Counts/bin',xr=xr2
 
@@ -285,7 +374,10 @@ IF (ans+cats+ses) NE 1 THEN $
 
 ;Now plot the results and check
 
-IF cats THEN evlall1=instr[xast1].caten ELSE evlall1=instr[xast1].toten
+IF cats THEN evlall1=instr[xast1].caten
+IF ans THEN  evlall1=instr[xast1].toten
+IF ses THEN evlall1=instr[xsst1].seen
+
 ;calibrate and randomize for nice plotting
 evlkev1=(evlall1*outpar[1])+outpar[0]+randomu(s,n_elements(evlall1))-0.5 
 enspe1=histogram(evlkev1,min=0)
@@ -296,7 +388,10 @@ oplot,[pens[0],pens[0]],[0,maxc]
 oplot,[pens[1],pens[1]],[0,maxc]
 
 IF inp2 THEN BEGIN
-   IF cats THEN evlall2=inst2[xast2].caten ELSE evlall2=inst2[xast2].toten
+   IF cats THEN evlall2=inst2[xast2].caten
+   IF ans THEN evlall2=inst2[xast2].toten
+   IF ses THEN evlall2=inst2[xsst2].seen
+   
    evlkev2=(evlall2*outpar[1])+outpar[0]+randomu(s,n_elements(evlall2))-0.5
    enspe2=histogram(evlkev2,min=0)
    maxc=max(enspe2[1:n_elements(enspe2)-1L])*1.2
