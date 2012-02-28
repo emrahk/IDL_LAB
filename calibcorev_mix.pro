@@ -2,7 +2,8 @@ pro calibcorev_mix, ev, calib, evc, catlist=listc, anlist=lista, selist=listse
 
 ;this program takes an eventlist file, a calibration file, which
 ;is a structure that holds calibration parameters, and converts to
-;energy all items in channel. Output is evc. This works with mixed anode and cathodes 
+;energy all items in channel. Output is evc. This works with mixed
+;anode, cathodes and steering electrodes 
 ;
 ;INPUTS
 ;ev: input event list array
@@ -36,6 +37,9 @@ pro calibcorev_mix, ev, calib, evc, catlist=listc, anlist=lista, selist=listse
 ;30/01/2012
 ;
 ;NOTES & BUG FIXES
+;
+;steering electrode capacity added, 24/02
+;
 
 IF NOT keyword_set(listc) THEN listc=-1
 IF NOT keyword_set(lista) THEN lista=-1
@@ -76,6 +80,23 @@ IF lista[0] ne -1 THEN BEGIN
       evc[lista[i],zeros]=0.
   ENDFOR
 ENDIF
+
+
+IF listse[0] ne -1 THEN BEGIN
+   npix=n_elements(listse)
+   FOR i=0, npix-1 DO BEGIN
+;      print,'i: ',i
+;      print,'lista[i]: ',lista[i]
+;      print,calib.ach2e(i,1)
+;      print,calib.ach2e(i,0)
+      zeros=where(ev[33+i,*] eq 0) ;zeros remain zero
+      evc[33+i,*]=ev[33+i,*]*calib.sech2e(listse[i],1)+calib.sech2e(listse[i],0)
+      IF calib.sech2e[listse[i],1] NE 0. THEN evc[33+i,*]=evc[33+i,*]+randomu(s,sz[2])-0.5
+      evc[33+i,zeros]=0.
+  ENDFOR
+ENDIF
+
+
 ENDELSE
 
 END
