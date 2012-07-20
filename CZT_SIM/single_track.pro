@@ -18,6 +18,12 @@ pro single_track, xstart, zstart, Efieldx, Efieldz, xe_actual, ze_actual, $
 ;verbose : if set print out the warnings
 ;mobe : electron mobility
 
+;created by emrah kalemci, August 2011
+;
+;NOTES BUG FIXES
+;
+;New anode placement defined
+
 IF NOT keyword_set(plotout) THEN plotout=0
 IF NOT keyword_set(verbose) THEN verbose=0
 
@@ -111,22 +117,22 @@ IF (plotout) THEN BEGIN
   window,1,xsize=800,ysize=200
   plot,xe_actual,ze_actual,yrange=[0.,5.],xtitle='Distance Along Detector(mm)',ytitle='depth(mm)',title='Electron',xrange=[0.,20.]
   ; Obtain the placement of anodes
-  obox,0.337,0,0.637,0.1
-  obox,1.311,0,1.611,0.1
-  obox,2.285,0,2.585,0.1
-  obox,3.709,0,3.909,0.1
-  obox,5.033,0,5.233,0.1
-  obox,6.357,0,6.557,0.1
-  obox,7.781,0,7.881,0.1
-  obox,9.105,0,9.205,0.1
-  obox,10.429,0,10.529,0.1
-  obox,11.753,0,11.853,0.1
-  obox,12.727,0,13.027,0.1
-  obox,13.901,0,14.201,0.1
-  obox,15.075,0,15.375,0.1
-  obox,16.049,0,16.649,0.1
-  obox,17.323,0,17.923,0.1
-  obox,18.595,0,19.195,0.1
+  obox,0.62,0,0.92,0.1
+  obox,1.82,0,2.12,0.1
+  obox,3.02,0,3.32,0.1
+  obox,4.27,0,4.47,0.1
+  obox,5.47,0,5.67,0.1
+  obox,6.67,0,6.87,0.1
+  obox,7.92,0,8.02,0.1
+  obox,9.12,0,9.22,0.1
+  obox,10.32,0,10.42,0.1
+  obox,11.52,0,11.62,0.1
+  obox,12.62,0,12.92,0.1
+  obox,13.82,0,14.12,0.1
+  obox,15.02,0,15.32,0.1
+  obox,16.07,0,16.67,0.1
+  obox,17.27,0,17.87,0.1
+  obox,18.47,0,19.07,0.1
 
 ENDIF
 
