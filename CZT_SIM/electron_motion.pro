@@ -59,6 +59,10 @@ pro electron_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
 ;that the absolute value of the electric field in z direction to be minimum 3, however, I need
 ;to find a better fix to this problem.
 
+;August 10, 2012, When the electric field is negative (which itself
+;may be a problem) the electron goes up but the time becomes
+;negative. make dt absolute value
+
 IF NOT keyword_set(plotout) THEN plotout=0
 IF NOT keyword_set(plotps) THEN plotps=0
 IF NOT keyword_set(verbose) THEN verbose=0
@@ -133,7 +137,7 @@ IF n_elements(z) GT 1 THEN STOP
 
 IF ((z LT coarsezstart) OR (z GT coarsezend)) THEN gz=0.005 ELSE gz=0.025
 
-Dte = gz/(mobe*Efieldz[x,z])          ; Obtain time step
+Dte = gz/abs(mobe*Efieldz[x,z])          ; Obtain time step
 t = t+Dte
 te_actual = [te_actual,t]           ; In order to find in terms of nanosecond, I multiplied by *(1*E9)
 
