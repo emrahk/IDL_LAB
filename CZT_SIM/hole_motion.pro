@@ -52,6 +52,9 @@ pro hole_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
 ;major effect on time and x position. In fact a coarsegrid position variable is set so
 ;that one can adjust which part of the detector is coarse and which part is fine
 
+;August 10, 2012, a bug that calculates dt as negative with negative
+;electric field is fixed
+
 IF NOT keyword_set(plotout) THEN plotout=0
 IF NOT keyword_set(plotps) THEN plotps=0
 IF NOT keyword_set(verbose) THEN verbose = 0
@@ -124,7 +127,7 @@ WHILE ((z NE 1000) AND (Abs(Efieldz[x,z]) GT 1.) AND loopcheck) DO BEGIN
 IF ((z LT coarsezstart) OR (z GT coarsezend)) THEN gz=0.005 ELSE gz=0.025
 
 
-Dth = gz/(mobh*Efieldz[x,z])          ; Obtain time step
+Dth = gz/abs(mobh*Efieldz[x,z])          ; Obtain time step
 t = t+Dth      
 th_actual = [th_actual,t]           ; In order to find in terms of nanosecond, I multiplied by *(1*E9)
 
