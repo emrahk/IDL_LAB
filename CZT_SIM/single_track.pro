@@ -24,6 +24,8 @@ pro single_track, xstart, zstart, Efieldx, Efieldz, xe_actual, ze_actual, $
 ;
 ;New anode placement defined
 
+;August 10, 2012, A bug about time interval being negative for negative electric fields fixed.
+
 IF NOT keyword_set(plotout) THEN plotout=0
 IF NOT keyword_set(verbose) THEN verbose=0
 
@@ -63,7 +65,7 @@ WHILE ((z NE 0) AND (Abs(Efieldz[x,z]) GT 3.) AND loopcheck) DO BEGIN
 
 IF (z LT 500 or z GT 900) THEN gz=0.005 ELSE gz=0.025
 
-Dte = gz/(mobe*Efieldz[x,z])          ; Obtain time step
+Dte = gz/abs(mobe*Efieldz[x,z])          ; Obtain time step
 t = t+Dte
 te_actual = [te_actual,t]           ; In order to find in terms of nanosecond, I multiplied by *(1*E9)
 
