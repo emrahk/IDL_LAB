@@ -55,6 +55,9 @@ pro hole_motion, xstart, zstart, Efieldx, Efieldz, WP_Ano, WP_Cath, WP_ST,$
 ;August 10, 2012, a bug that calculates dt as negative with negative
 ;electric field is fixed
 
+;when the charges are very close to the side do not allow them to go
+;out, August 11 2012
+
 IF NOT keyword_set(plotout) THEN plotout=0
 IF NOT keyword_set(plotps) THEN plotps=0
 IF NOT keyword_set(verbose) THEN verbose = 0
@@ -142,6 +145,10 @@ Qr_h      = Qr_h*Exp(-L/L_h)         ; Remaining induced charge after trapping
 QTindA=QTindA+(QT_h[x,z]*WP_Ano[x,z])    ;this is an approximation that may be problematic for large x movements
 QTindC=QTindC+(QT_h[x,z]*WP_Cath[y,z])    ;this is an approximation that may be problematic for large x movements
 QTindST=QTindST+(QT_h[x,z]*WP_ST[x,z])    ;this is an approximation that may be problematic for large x movements
+
+;keep in the detector
+IF xhv GE 19.54 THEN xhv=19.54
+IF xhv LT 0. THEN xhv=0
 
 ;----- CHECK THE DIRECTION OF ELECTRIC FIELD LINES -------
 ; Holes move through the cathode
