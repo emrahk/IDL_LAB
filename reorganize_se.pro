@@ -32,7 +32,8 @@ evl=evlist
 ;
 ;since there are 3 se channels but 5 steering electrodes we need a map
 ;
-
+;Aug 2012
+;a typo fixed
 
 ;set anode channels if not given
 IF NOT keyword_set(ses) THEN ses=[33,34,35]
@@ -60,7 +61,7 @@ IF NOT keyword_set(outstr) THEN BEGIN
   outstr1=create_struct('aflag','','cflag','','sflag','','flag','',$
   'en',fltarr(4),'toten',0.,'det',intarr(4), $
   'cadet',intarr(4),'caten',0.,'catend',fltarr(4),'car',0.,$
-  'sedet',intarr[3],'seen',0.,'seend',fltarr(3))
+  'sedet',intarr(3),'seen',0.,'seend',fltarr(3))
   outstr=replicate(outstr1,sz(2))
 ENDIF
 
@@ -163,11 +164,15 @@ evls=temporary_evl
 
 ;start with singles
 
-sums=total(evls(0:maxs-1,singles),1)
-outstr[singles].sflag='single'
-outstr[singles].seend[0]=sums
-outstr[singles].seen=sums
-outstr[singles].sedet[0]=dets
+IF singles[0] ne -1 THEN BEGIN
+   sums=total(evls(0:maxs-1,singles),1)
+   outstr[singles].sflag='single'
+   outstr[singles].seend[0]=sums
+   outstr[singles].seen=sums
+   outstr[singles].sedet[0]=dets
+   outstr[singles].sedet[1:2]=0
+   outstr[singles].seend[1:2]=0.
+ENDIF
 ;continue with doubles
 
 ;since the number is much less easier to work with a for loop to
@@ -188,7 +193,9 @@ IF doubles[0] ne -1 THEN BEGIN
     ENDIF ELSE BEGIN
       outstr[doubles(j)].sedet[0:1]=reverse(dts)
       outstr[doubles(j)].seend[0:1]=reverse(ens)
-    ENDELSE
+   ENDELSE
+   outstr[doubles(j)].sedet[2]=0
+   outstr[doubles(j)].seend[2]=0.
   ENDFOR
 ENDIF
 ;continue with triples

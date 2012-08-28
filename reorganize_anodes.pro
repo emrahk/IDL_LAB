@@ -28,6 +28,11 @@ evl=evlist
 ;30/01/2012
 ;
 ;NOTES & BUG FIXES
+;
+;Aug 2012
+;steering electrode part added, corrected to make yigit simulation works
+
+
 
 ;set anode channels if not given
 IF NOT keyword_set(anots) THEN anots=[17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
@@ -53,8 +58,10 @@ sz=size(evl)
 ;create the standard output structure
 
 IF NOT keyword_set(outstr) THEN BEGIN
-  outstr1=create_struct('aflag','','cflag','','flag','','en',fltarr(4),'toten',0.,$
-  'det',intarr(4), 'cadet',intarr(4),'caten',0.,'catend',fltarr(4),'car',0.)
+ outstr1=create_struct('aflag','','cflag','','sflag','','flag','',$
+  'en',fltarr(4),'toten',0.,'det',intarr(4), $
+  'cadet',intarr(4),'caten',0.,'catend',fltarr(4),'car',0.,$
+  'sedet',intarr(3),'seen',0.,'seend',fltarr(3))
   outstr=replicate(outstr1,sz(2))
 ENDIF
 
@@ -86,6 +93,7 @@ IF noise_events_ind[0] NE -1 THEN BEGIN
   quadn=where(sharen eq 4)
   multn=where(sharen gt 4)
   detn=(where(evln(*,singlen) eq 1) mod maxan)
+
   IF doublen[0] ne -1 THEN detdn=(where(evln(*,doublen) eq 1) mod maxan)
   IF triplen[0] ne -1 THEN dettn=(where(evln(*,triplen) eq 1) mod maxan)
   IF quadn[0] ne -1 THEN detqn=(where(evln(*,quadn) eq 1) mod maxan)
@@ -93,12 +101,16 @@ IF noise_events_ind[0] NE -1 THEN BEGIN
 
   ;start with singles
 
+
   evla=temporary_evl
-  sumn=total(evla(0:maxan-1,singlen),1)
-  outstr[singlen].aflag='thresh_1'  
-  outstr[singlen].en[0]=sumn
-  outstr[singlen].toten=sumn
-  outstr[singlen].det[0]=detn
+
+  IF singlen[0] NE -1 THEN BEGIN
+     sumn=total(evla(0:maxan-1,singlen),1)
+     outstr[singlen].aflag='thresh_1'  
+     outstr[singlen].en[0]=sumn
+     outstr[singlen].toten=sumn
+     outstr[singlen].det[0]=detn
+  ENDIF
 
   ;continue with doubles
 
@@ -192,12 +204,15 @@ evla=temporary_evl
 
 ;start with singles
 
-sums=total(evla(0:maxan-1,singles),1)
-outstr[singles].aflag='single'
-outstr[singles].en[0]=sums
-outstr[singles].toten=sums
-outstr[singles].det[0]=dets
-
+IF singles[0] NE -1 THEN BEGIN
+   sums=total(evla(0:maxan-1,singles),1)
+   outstr[singles].aflag='single'
+   outstr[singles].en[0]=sums
+   outstr[singles].en[1:3]=0.
+   outstr[singles].toten=sums
+   outstr[singles].det[0]=dets
+   outstr[singles].det[1:3]=0
+ENDIF
 ;continue with doubles
 
 ;since the number is much less easier to work with a for loop to
@@ -218,7 +233,9 @@ IF doubles[0] ne -1 THEN BEGIN
     ENDIF ELSE BEGIN
       outstr[doubles(j)].det[0:1]=reverse(dts)
       outstr[doubles(j)].en[0:1]=reverse(ens)
-    ENDELSE
+   ENDELSE
+     outstr[doubles(j)].en[2:3]=0.
+     outstr[doubles(j)].det[2:3]=0
   ENDFOR
 ENDIF
 ;continue with triples
@@ -244,7 +261,9 @@ IF triples(0) ne -1 THEN BEGIN
     outstr[triples(j)].en[0]=evla(dettj(sdett(2)),triples(j))
     outstr[triples(j)].en[1]=evla(dettj(sdett(1)),triples(j))
     outstr[triples(j)].en[2]=evla(dettj(sdett(0)),triples(j))
-  ENDFOR
+    outstr[triples(j)].en[3]=0.
+    outstr[triples(j)].det[3]=0
+    ENDFOR
 ENDIF
 
 ;continue with quadruples
@@ -258,7 +277,6 @@ IF quads(0) ne -1 THEN BEGIN
   sums=total(evla(0:maxan-1,quads),1)
   outstr[quads].aflag='quad'
   outstr[quads].toten=sums
-
 
   FOR j=0L,n_elements(quads)-1L DO BEGIN
     detqj=[detq[4*j],detq[4*j+1L],detq[4*j+2L],detq[4*j+3L]]

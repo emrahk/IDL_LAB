@@ -28,6 +28,9 @@ evl=evlist
 ;30/01/2012
 ;
 ;NOTES & BUG FIXES
+;
+;
+;Aug 22, now handles steering electrodes, works fine with Yigit simulation
 
 ;set anode channels if not given
 IF NOT keyword_set(cats) THEN cats=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
@@ -53,8 +56,10 @@ sz=size(evl)
 ;create the standard output structure if not given
 
 IF NOT keyword_set(outstr) THEN BEGIN 
-  outstr1=create_struct('cflag','','flag','','en',fltarr(4),'toten',0.,$
-  'det',intarr(4),'cadet',intarr(4),'caten',0.,'catend',fltarr(4),'car',0.)
+ outstr1=create_struct('aflag','','cflag','','sflag','','flag','',$
+  'en',fltarr(4),'toten',0.,'det',intarr(4), $
+  'cadet',intarr(4),'caten',0.,'catend',fltarr(4),'car',0.,$
+  'sedet',intarr(3),'seen',0.,'seend',fltarr(3))
   outstr=replicate(outstr1,sz(2))
 ENDIF
 
@@ -94,11 +99,13 @@ IF noise_events_ind[0] NE -1 THEN BEGIN
   ;start with singles
 
   evlc=temporary_evl
-  sumn=total(evlc(0:maxcat-1,singlen),1)
-  outstr[singlen].cflag='thresh_1'  
-  outstr[singlen].catend[0]=sumn
-  outstr[singlen].caten=sumn
-  outstr[singlen].cadet[0]=detn
+  IF singlen[0] NE -1 THEN BEGIN
+     sumn=total(evlc(0:maxcat-1,singlen),1)
+     outstr[singlen].cflag='thresh_1'  
+     outstr[singlen].catend[0]=sumn
+     outstr[singlen].caten=sumn
+     outstr[singlen].cadet[0]=detn
+  ENDIF
 
   ;continue with doubles
 
@@ -192,11 +199,15 @@ evlc=temporary_evl
 
 ;start with singles
 
-sums=total(evlc(0:maxcat-1,singles),1)
-outstr[singles].cflag='single'
-outstr[singles].catend[0]=sums
-outstr[singles].caten=sums
-outstr[singles].cadet[0]=dets
+IF singles[0] NE -1 THEN BEGIN
+   sums=total(evlc(0:maxcat-1,singles),1)
+   outstr[singles].cflag='single'
+   outstr[singles].catend[0]=sums
+   outstr[singles].caten=sums
+   outstr[singles].cadet[0]=dets
+   outstr[singles].catend[1:3]=0.
+   outstr[singles].cadet[1:3]=0
+ENDIF
 
 ;continue with doubles
 
@@ -219,6 +230,8 @@ IF doubles[0] ne -1 THEN BEGIN
       outstr[doubles(j)].cadet[0:1]=reverse(dts)
       outstr[doubles(j)].catend[0:1]=reverse(ens)
     ENDELSE
+      outstr[doubles(j)].cadet[2:3]=0
+      outstr[doubles(j)].catend[2:3]=0.
   ENDFOR
 ENDIF
 ;continue with triples
@@ -244,6 +257,8 @@ IF triples(0) ne -1 THEN BEGIN
     outstr[triples(j)].catend[0]=evlc(dettj(sdett(2)),triples(j))
     outstr[triples(j)].catend[1]=evlc(dettj(sdett(1)),triples(j))
     outstr[triples(j)].catend[2]=evlc(dettj(sdett(0)),triples(j))
+    outstr[triples(j)].catend[3]=0.
+    outstr[triples(j)].cadet[3]=0
   ENDFOR
 ENDIF
 
