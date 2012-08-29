@@ -33,7 +33,7 @@ evl=evlist
 ;since there are 3 se channels but 5 steering electrodes we need a map
 ;
 ;Aug 2012
-;f. typos fixed
+;f. typos fixed, now handles all negative values...
 
 ;set anode channels if not given
 IF NOT keyword_set(ses) THEN ses=[33,34,35]
@@ -70,16 +70,16 @@ ENDIF
 evls=reform(evl[ses,*])
 evl=evls ;keep only the steering electrodes
 
-;This part takes care of all 0 steering electrodes 
+;This part takes care of all 0 or negative steering electrodes 
 maxs=n_elements(ses)
-check0=where(total(evls(0:maxs-1,*),1) eq 0)
+check0=where(total(evls(0:maxs-1,*),1) le 0.)
 outstr[check0].sflag='thresh'
 
 temporary_evl=evls
 ;now take care of events below threshold
 ;handle below threshold for diagnostic purposes
 
-noise_events_ind=where((temporary_evl lt se_thr) and (temporary_evl gt 0) ,noise_count)
+noise_events_ind=where((temporary_evl lt se_thr) and (temporary_evl ne 0) ,noise_count)
 
 IF noise_events_ind[0] NE -1 THEN BEGIN
   evln=intarr(maxs,sz(2))

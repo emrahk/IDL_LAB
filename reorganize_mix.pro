@@ -49,6 +49,8 @@ pro reorganize_mix,evlist,an_thr,cat_thr,se_thr,clean,outstr=outstr,$
 ;
 ;steering electrode map added 27/02/2012
 ;
+;it adds steering electrode events twice, fixed Aug 2012
+
 
 IF NOT keyword_set(cats) THEN cats=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
 IF NOT keyword_set(anots) THEN anots=[17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]
@@ -97,6 +99,7 @@ casig=where((outstr.cflag eq 'single') or (outstr.cflag eq 'double') or $
 xx=where(outstr[casig].aflag eq 'single')
 outstr[casig[xx]].flag='single'
 clean=outstr[casig[xx]]
+
 xx=where(outstr[casig].aflag eq 'double')
 
 IF xx[0] NE -1 THEN BEGIN
@@ -125,7 +128,7 @@ ENDIF
 
 clean.car=clean.caten/clean.toten
 IF inse THEN BEGIN
-   xx=where(outstr[casig].sflag eq 'single')
+   xx=where((outstr[casig].sflag eq 'single') and (outstr[casig].flag eq ''))
    IF xx[0] NE -1 THEN BEGIN
       clean=[clean,outstr[casig[xx]]]
    ENDIF
