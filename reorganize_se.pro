@@ -33,7 +33,7 @@ evl=evlist
 ;since there are 3 se channels but 5 steering electrodes we need a map
 ;
 ;Aug 2012
-;a typo fixed
+;f. typos fixed
 
 ;set anode channels if not given
 IF NOT keyword_set(ses) THEN ses=[33,34,35]
@@ -98,7 +98,7 @@ IF noise_events_ind[0] NE -1 THEN BEGIN
 
   evls=temporary_evl
   sumn=total(evls(0:maxs-1,singlen),1)
-  outstr[singlen].aflag='thresh_1'  
+  outstr[singlen].sflag='thresh_1'  
   outstr[singlen].seend[0]=sumn
   outstr[singlen].seen=sumn
   outstr[singlen].sedet[0]=detn
