@@ -68,7 +68,7 @@ IF NOT keyword_set(ses) THEN ses=0
 IF (ans+cats+ses) NE 1 THEN BEGIN
    print,'You can only choose one of anodes, cathodes or steering electrodes, nothing to be done'
 ENDIF
-stop
+;stop
 IF NOT keyword_set(canoc) THEN canoc=-1
 IF NOT keyword_set(anoc) THEN anoc=-1
 
