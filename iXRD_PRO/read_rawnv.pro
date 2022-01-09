@@ -30,6 +30,8 @@ pro read_rawnv, fname, outblocks, outev, outtime
 ;
 ; Created by EK, Dec 2021
 ;
+; Fixed timebits, but may be updated again
+;
 
 ;read the file
 
@@ -51,9 +53,9 @@ pro read_rawnv, fname, outblocks, outev, outtime
   FOR i=0, numblocks-1 DO BEGIN   
        p_i=8
        WHILE p_i LE 428 DO BEGIN
-       ; calculate time
-       timesec=outblocks[p_i,i]+outblocks[p_i+1,i]*256.
-       timesubs=(outblocks[p_i+4,i]+outblocks[p_i+5,i]*256.)/65536.
+       ; calculate time (to be fixed once again later)
+       timesec=outblocks[p_i+3,i]+outblocks[p_i+4,i]*256.
+       timesubs=(outblocks[p_i+1,i]+outblocks[p_i+2,i]*256.)/65536.
        outtime[j]=timesec+timesubs
        p_i=p_i+6 ;pass to hitbytes
        hitbytes=outblocks[p_i:p_i+4,i]
