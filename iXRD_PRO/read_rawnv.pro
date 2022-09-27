@@ -54,8 +54,12 @@ pro read_rawnv, fname, outblocks, outev, outtime
        p_i=8
        WHILE p_i LE 428 DO BEGIN
        ; calculate time (to be fixed once again later)
-       timesec=outblocks[p_i+3,i]+outblocks[p_i+4,i]*256.
-       timesubs=(outblocks[p_i+1,i]+outblocks[p_i+2,i]*256.)/65536.
+       ;timesec=outblocks[p_i+3,i]+outblocks[p_i+4,i]*256.
+       ;timesubs=(outblocks[p_i+1,i]+outblocks[p_i+2,i]*256.)/65536.
+       
+          timesec=outblocks[p_i+2,i]+outblocks[p_i+3,i]*256D
+          timesec=timesec+outblocks[p_i+4,i]*(256D*256D)+outblocks[p_i+5,i]*(256D*256D*256D)
+       timesubs=(outblocks[p_i,i]+outblocks[p_i+1,i]*256D)/65536D
        outtime[j]=timesec+timesubs
        p_i=p_i+6 ;pass to hitbytes
        hitbytes=outblocks[p_i:p_i+4,i]
